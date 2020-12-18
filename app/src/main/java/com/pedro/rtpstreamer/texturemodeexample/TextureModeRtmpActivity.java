@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.CameraOpenException;
+import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
@@ -32,7 +33,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 public class TextureModeRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener, TextureView.SurfaceTextureListener {
 
-  private RtmpCamera2 rtmpCamera2;
+  private RtmpCamera1 rtmpCamera2;
   private AutoFitTextureView textureView;
   private Button button;
   private Button bRecord;
@@ -56,7 +57,9 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpCamera2 = new RtmpCamera2(textureView, this);
+    etUrl.setText("rtmp://192.168.1.199/live/one");
+    etUrl.setText("rtmp://flutter-webrtc.kuzalex.com/live/one");
+    rtmpCamera2 = new RtmpCamera1(textureView, this);
     textureView.setSurfaceTextureListener(this);
   }
 

@@ -41,6 +41,8 @@ public class DisplayActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setText("rtmp://192.168.1.199/live/one");
+    etUrl.setText("rtmp://flutter-webrtc.kuzalex.com/live/one");
     getInstance();
 
     if (DisplayService.Companion.isStreaming()) {

@@ -3,6 +3,8 @@ package com.pedro.rtpstreamer.defaultexample;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -38,6 +40,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
       + "/rtmp-rtsp-stream-client-java");
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -52,6 +55,10 @@ public class ExampleRtmpActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setText("rtmp://192.168.1.199/live/one");
+    etUrl.setText("rtmp://flutter-webrtc.kuzalex.com/live/one");
+
+
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     rtmpCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
@@ -72,7 +79,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera1.reTry(5000, reason)) {
+        if (false && rtmpCamera1.reTry(5000, reason)) {
           Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
         } else {

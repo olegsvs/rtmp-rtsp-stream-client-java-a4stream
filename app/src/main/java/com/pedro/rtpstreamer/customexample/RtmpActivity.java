@@ -89,6 +89,9 @@ public class RtmpActivity extends AppCompatActivity
     tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setText("rtmp://192.168.1.199/live/one");
+    etUrl.setText("rtmp://flutter-webrtc.kuzalex.com/live/one");
+
     bStartStop = findViewById(R.id.b_start_stop);
     bStartStop.setOnClickListener(this);
     bRecord = findViewById(R.id.b_record);
