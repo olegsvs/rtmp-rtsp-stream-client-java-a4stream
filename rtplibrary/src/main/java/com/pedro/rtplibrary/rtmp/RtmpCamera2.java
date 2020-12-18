@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 public class RtmpCamera2 extends Camera2Base {
 
   public String testtest() {
-    return testtest();
+    return "testtest";
   }
 
   private SrsFlvMuxer srsFlvMuxer;
