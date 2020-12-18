@@ -188,10 +188,19 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private void adaptFpsRange(int expectedFps, CaptureRequest.Builder builderInputSurface) {
     Range<Integer>[] fpsRanges = getSupportedFps();
     if (fpsRanges != null && fpsRanges.length > 0) {
-      Range<Integer> closestRange = fpsRanges[0];
+      Range<Integer> closestRange0 = fpsRanges[0];
+      // for fixing https://stackoverflow.com/questions/38370583/getcameracharacteristics-control-ae-available-target-fps-ranges-in-camerachara
+      Range<Integer> closestRange = new Range<Integer>(
+              closestRange0.getLower() < 1000 ? closestRange0.getLower() : closestRange0.getLower()/1000,
+              closestRange0.getUpper() < 1000 ? closestRange0.getUpper() : closestRange0.getUpper()/1000);
+
       int measure = Math.abs(closestRange.getLower() - expectedFps) + Math.abs(
           closestRange.getUpper() - expectedFps);
-      for (Range<Integer> range : fpsRanges) {
+      for (Range<Integer> range0 : fpsRanges) {
+        Range<Integer> range = new Range<Integer>(
+                range0.getLower() < 1000 ? range0.getLower() : range0.getLower()/1000,
+                range0.getUpper() < 1000 ? range0.getUpper() : range0.getUpper()/1000);
+
         if (range.getLower() <= expectedFps && range.getUpper() >= expectedFps) {
           int curMeasure =
               Math.abs(range.getLower() - expectedFps) + Math.abs(range.getUpper() - expectedFps);
@@ -202,7 +211,12 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         }
       }
       Log.i(TAG, "camera2 fps: " + closestRange.getLower() + " - " + closestRange.getUpper());
-      builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange);
+
+      Range<Integer> resRange = new Range<Integer>(
+              fpsRanges[0].getUpper()<1000 ? closestRange.getLower() : closestRange.getLower()*1000,
+              fpsRanges[0].getUpper()<1000 ? closestRange.getUpper() : closestRange.getUpper()*1000);
+
+      builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, resRange);
     }
   }
 
