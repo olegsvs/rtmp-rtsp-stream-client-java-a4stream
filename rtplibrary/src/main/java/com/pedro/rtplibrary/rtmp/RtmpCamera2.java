@@ -25,6 +25,10 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtmpCamera2 extends Camera2Base {
 
+  public String testtest() {
+    return testtest();
+  }
+
   private SrsFlvMuxer srsFlvMuxer;
 
   /**

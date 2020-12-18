@@ -126,6 +126,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     return true;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     //Stop listener for image, text and gif stream objects.
@@ -294,6 +295,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     }
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void setTextToStream() {
     TextObjectFilterRender textObjectFilterRender = new TextObjectFilterRender();
     rtmpCamera1.getGlInterface().setFilter(textObjectFilterRender);
@@ -304,6 +306,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     spriteGestureController.setBaseObjectFilterRender(textObjectFilterRender); //Optional
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void setImageToStream() {
     ImageObjectFilterRender imageObjectFilterRender = new ImageObjectFilterRender();
     rtmpCamera1.getGlInterface().setFilter(imageObjectFilterRender);
@@ -316,6 +319,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     spriteGestureController.setPreventMoveOutside(false); //Optional
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void setGifToStream() {
     try {
       GifObjectFilterRender gifObjectFilterRender = new GifObjectFilterRender();
@@ -343,6 +347,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   @Override
   public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
+      @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
       @Override
       public void run() {
         Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
@@ -388,6 +393,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     });
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   @Override
   public void onClick(View view) {
     switch (view.getId()) {
@@ -460,11 +466,13 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
     rtmpCamera1.startPreview(CameraHelper.Facing.BACK, 1280, 720);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
     if (rtmpCamera1.isRecording()) {
