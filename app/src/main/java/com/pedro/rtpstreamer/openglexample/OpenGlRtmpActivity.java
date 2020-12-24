@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -62,6 +63,7 @@ import com.pedro.encoder.input.gl.render.filters.object.GifObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.ImageObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
+import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
@@ -84,7 +86,10 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback,
-    View.OnTouchListener {
+    View.OnTouchListener, CameraCallbacks {
+
+
+  private static final String TAG = "OpenGlRtmpActivity";
 
   private RtmpCamera2 rtmpCamera1;
   private Button button;
@@ -118,6 +123,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     rtmpCamera1 = new RtmpCamera2(openGlView, this);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
+
+    rtmpCamera1.setCameraCallbacks(this);
+
   }
 
   @Override
@@ -498,5 +506,32 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void onCameraChanged(boolean isFrontCamera) {
+    Log.i(TAG, "onCameraChanged");
+    Toast.makeText(this,
+            "onCameraChanged",
+            Toast.LENGTH_SHORT).show();
+
+  }
+
+  @Override
+  public void onCameraError(String error) {
+    Log.i(TAG, "onCameraError");
+    Toast.makeText(this,
+            "onCameraError",
+            Toast.LENGTH_SHORT).show();
+
+  }
+
+  @Override
+  public void onCameraDisconnected() {
+    Log.i(TAG, "onCameraDisconnected");
+    Toast.makeText(this,
+            "onCameraDisconnected",
+            Toast.LENGTH_SHORT).show();
+
   }
 }

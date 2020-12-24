@@ -1,3 +1,18 @@
+```
+kuzalex
+
+ maven {
+            url 'https://jitpack.io'
+            credentials { username authToken }
+
+       }
+
+
+       dependencies {
+           implementation 'org.bitbucket.storkgroup.rtmp-rtsp-stream-client-java-a4stream:rtplibrary:tag3'
+       }
+```
+
 # rtmp-rtsp-stream-client-java
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)

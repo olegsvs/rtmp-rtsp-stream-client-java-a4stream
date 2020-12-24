@@ -708,6 +708,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onDisconnected(@NonNull CameraDevice cameraDevice) {
     cameraDevice.close();
     semaphore.release();
+    if (cameraCallbacks != null) cameraCallbacks.onCameraDisconnected();
     Log.i(TAG, "Camera disconnected");
   }
 
