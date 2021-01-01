@@ -125,13 +125,17 @@ public class OpenGlView extends OpenGlViewBase {
     semaphore.release();
     try {
       while (running) {
-        if (!paused && (frameAvailable || forceRender)) {
+        if (frameAvailable || forceRender) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0,
+          if (!paused)
+            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0,
               true, false, false);
+          else {
+            Log.i("Here", "Here");
+          }
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
