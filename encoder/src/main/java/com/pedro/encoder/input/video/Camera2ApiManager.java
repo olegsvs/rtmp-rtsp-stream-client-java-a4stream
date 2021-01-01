@@ -215,6 +215,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         Log.e(TAG, "Error", e);
       }
     }
+
+
   }
 
 

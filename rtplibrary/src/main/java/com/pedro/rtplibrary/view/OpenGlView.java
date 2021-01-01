@@ -125,7 +125,7 @@ public class OpenGlView extends OpenGlViewBase {
     semaphore.release();
     try {
       while (running) {
-        if (frameAvailable || forceRender) {
+        if (!paused && (frameAvailable || forceRender)) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
           managerRender.updateFrame();

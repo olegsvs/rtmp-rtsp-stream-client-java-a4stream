@@ -68,7 +68,7 @@ class RtpService : Service() {
     private val channelId = "rtpStreamChannel"
     private val notifyId = 123456
     private var notificationManager: NotificationManager? = null
-    private var camera2Base: Camera2Base? = null
+    public var camera2Base: Camera2Base? = null
     private var openGlView: OpenGlView? = null
     private var contextApp: Context? = null
 

@@ -3,6 +3,7 @@ package com.pedro.rtplibrary.view;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+import android.util.Log;
 import android.view.Surface;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.input.gl.SurfaceManager;
@@ -276,5 +277,12 @@ public class OffScreenGlThread
       frameAvailable = true;
       sync.notifyAll();
     }
+  }
+
+  @Override
+  public void pause(boolean paused) {
+    assert(false);
+    Log.e("HERE", "NOT IMPLEMENTED");
+
   }
 }

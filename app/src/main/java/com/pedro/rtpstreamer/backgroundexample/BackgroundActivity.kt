@@ -3,9 +3,11 @@ package com.pedro.rtpstreamer.backgroundexample
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtpstreamer.R
@@ -56,9 +58,12 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
     RtpService.startPreview()
   }
 
+  @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
   override fun surfaceDestroyed(holder: SurfaceHolder) {
-    RtpService.setView(applicationContext)
-    RtpService.stopPreview()
+    RtpService.camera2Base?.cameraManager?.testStopRepeatingEncoder1()
+    RtpService.camera2Base?.glInterface?.pause(true);
+//    RtpService.setView(applicationContext)
+//    RtpService.stopPreview()
   }
 
   override fun surfaceCreated(holder: SurfaceHolder) {
