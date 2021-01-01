@@ -104,11 +104,18 @@ public class OpenGlView extends OpenGlViewBase {
     return managerRender != null && managerRender.isAAEnabled();
   }
 
+
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     Log.i(TAG, "size: " + width + "x" + height);
-    this.previewWidth = width;
-    this.previewHeight = height;
+    if (width<=height) {
+      this.previewWidth = width;
+      this.previewHeight = height;
+    } else {
+      this.previewWidth = height;
+      this.previewHeight = width;
+
+    }
     if (managerRender != null) managerRender.setPreviewSize(previewWidth, previewHeight);
   }
 
