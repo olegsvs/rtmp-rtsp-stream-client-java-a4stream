@@ -122,8 +122,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       final List<Surface> listSurfaces = new ArrayList<>();
       Surface preview = addPreviewSurface();
-      if (preview != null) listSurfaces.add(preview);
-      if (surfaceEncoder != preview && surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
+      if (preview != null)
+        listSurfaces.add(preview);
+      if (surfaceEncoder != preview && surfaceEncoder != null)
+        listSurfaces.add(surfaceEncoder);
 
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
         @Override
@@ -161,6 +163,60 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       reOpenCamera(cameraId != -1 ? cameraId : 0);
     }
   }
+
+
+  public void testStartRepeatingEncoder1() {
+
+    if (cameraCaptureSession != null) {
+      try {
+        cameraCaptureSession.stopRepeating();
+//        surfaceEncoder = null;
+
+        final List<Surface> listSurfaces = new ArrayList<>();
+        Surface preview = addPreviewSurface();
+        if (preview != null)
+          listSurfaces.add(preview);
+        if (surfaceEncoder != preview && surfaceEncoder != null)
+          listSurfaces.add(surfaceEncoder);
+
+
+        if (listSurfaces.size()>0) {
+          CaptureRequest captureRequest = drawSurface(listSurfaces);
+          if (captureRequest != null) {
+            cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+          }
+        } else {
+          Log.e(TAG, "preview surface is null");
+        }
+
+      } catch (CameraAccessException | IllegalStateException e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+
+    Log.i(TAG, "Here");
+  }
+
+  public void testStopRepeatingEncoder1() {
+    if (cameraCaptureSession != null) {
+      try {
+        cameraCaptureSession.stopRepeating();
+
+//        if (surfaceEncoder != null) {
+//          CaptureRequest captureRequest = drawSurface(Collections.singletonList(surfaceEncoder));
+//          if (captureRequest != null) {
+//            cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+//          }
+//        } else {
+//          Log.e(TAG, "preview surface is null");
+//        }
+
+      } catch (CameraAccessException | IllegalStateException e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+  }
+
 
   private Surface addPreviewSurface() {
     Surface surface = null;

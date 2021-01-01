@@ -58,7 +58,7 @@ import java.util.List;
 public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrophoneData {
 
   protected Context context;
-  private Camera2ApiManager cameraManager;
+  public Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;

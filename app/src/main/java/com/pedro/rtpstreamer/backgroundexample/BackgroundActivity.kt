@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.SurfaceHolder
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtpstreamer.R
 import kotlinx.android.synthetic.main.activity_background.*
 
@@ -14,6 +16,8 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_background)
+    et_rtp_url.setText("rtmp://192.168.1.199/live/one")
+    et_rtp_url.setText("rtmp://flutter-webrtc.kuzalex.com/live/one")
     RtpService.init(this)
     b_start_stop.setOnClickListener {
       if (isMyServiceRunning(RtpService::class.java)) {
@@ -26,6 +30,24 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
         b_start_stop.setText(R.string.stop_button)
       }
     }
+
+
+    switch_camera.setOnClickListener {
+      try {
+        RtpService.switchCamera()
+      } catch (e: CameraOpenException) {
+        Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+      }
+    }
+
+    b_test.setOnClickListener {
+      try {
+        RtpService.test()
+      } catch (e: CameraOpenException) {
+        Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+      }
+    }
+
     surfaceView.holder.addCallback(this)
   }
 

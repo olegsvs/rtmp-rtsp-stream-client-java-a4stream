@@ -83,6 +83,30 @@ class RtpService : Service() {
       camera2Base?.replaceView(context)
     }
 
+    fun switchCamera() {
+      camera2Base?.switchCamera()
+    }
+
+    private var test = false
+    fun test() {
+      if (test){
+        test=!test
+        camera2Base?.cameraManager?.testStartRepeatingEncoder1()
+
+      } else {
+        test=!test
+        camera2Base?.cameraManager?.testStopRepeatingEncoder1()
+
+
+      }
+
+
+
+
+    }
+
+
+
     fun startPreview() {
       camera2Base?.startPreview()
     }
