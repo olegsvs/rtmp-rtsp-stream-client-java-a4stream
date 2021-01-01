@@ -194,6 +194,6 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void surfaceDestroyed(SurfaceHolder holder) {
-    stop();
+//    stop();
   }
 }
