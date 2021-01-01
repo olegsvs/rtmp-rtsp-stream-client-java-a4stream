@@ -193,6 +193,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void pause(boolean paused) {
     synchronized (sync) {
+      frameAvailable = false;
       this.paused = paused;
       sync.notifyAll();
     }
