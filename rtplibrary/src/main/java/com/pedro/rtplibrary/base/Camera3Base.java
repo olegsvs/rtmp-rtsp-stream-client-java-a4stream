@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
@@ -47,18 +48,12 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Wrapper to stream with camera2 api and microphone. Support stream with SurfaceView, TextureView,
- * OpenGlView(Custom SurfaceView that use OpenGl) and Context(background mode). All views use
- * Surface to buffer encoding mode for H264.
- *
- * API requirements:
- * API 21+.
- *
- * Created by pedro on 7/07/17.
- */
+
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrophoneData {
+
+
+    private final String TAG = "Camera2ApiManager";
 
     protected Context context;
     public Camera3ApiManager cameraManager;
@@ -68,14 +63,18 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
     private boolean streaming = false;
 
-    public GlInterface glCodecInterface;
-    public GlInterface glPreviewInterface;
+    private GlInterface glCodecInterface;
+    private GlInterface glPreviewInterface;
 
     private boolean videoEnabled = false;
     private boolean onPreview = false;
-//    private boolean isBackground = false;
+    private Boolean surfaceAttached = false;
+
+    //    private boolean isBackground = false;
 //    protected RecordController recordController;
-//    private int previewWidth, previewHeight;
+    private int previewWidth, previewHeight;
+    private int encoderWidth,  encoderHeight;
+
     private FpsListener fpsListener = new FpsListener();
 
 
@@ -303,20 +302,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
 
-//    public void replaceView(Context context) {
-//        isBackground = true;
-//        replaceGlInterface(new OffScreenGlThread(context));
-//    }
 
-//    public void replaceView(OpenGlView openGlView) {
-//        isBackground = false;
-//        replaceGlInterface(openGlView);
-//    }
-//
-//    public void replaceView(LightOpenGlView lightOpenGlView) {
-//        isBackground = false;
-//        replaceGlInterface(lightOpenGlView);
-//    }
 
     /**
      * Replace glInterface used on fly. Ignored if you use SurfaceView, TextureView or context without
@@ -359,8 +345,11 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             int encoderWidth, int encoderHeight, int encoderRotation
             ) {
         if (!streaming && !onPreview) {
-//            previewWidth = width;
-//            previewHeight = height;
+            this.previewWidth = previewWidth;
+            this.previewHeight = previewHeight;
+
+            this.encoderWidth = encoderWidth;
+            this.encoderHeight = encoderHeight;
 
 
 
@@ -384,42 +373,44 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
             cameraManager.openCameraFacing(cameraFacing);
             onPreview = true;
+            surfaceAttached = false;
         }
     }
 
-//    public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
-//        startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
-//    }
-//
-//    public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
-//        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
-//    }
-//
-//    public void startPreview(CameraHelper.Facing cameraFacing) {
-//        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(),
-//                CameraHelper.getCameraOrientation(context));
-//    }
-//
-//    public void startPreview() {
-//        startPreview(CameraHelper.Facing.BACK);
-//    }
 
-    /**
-     * Stop camera preview. Ignored if streaming or already stopped. You need call it after
-     *
-     * @stopStream to release camera properly if you will close activity.
-     */
-//    public void stopPreview() {
-//        if (!isStreaming() && !isRecording() && onPreview && !isBackground) {
-//            if (glInterface != null) {
-//                glInterface.stop();
-//            }
-//            cameraManager.closeCamera();
-//            onPreview = false;
-//            previewWidth = 0;
-//            previewHeight = 0;
-//        }
-//    }
+
+
+    public void addPreviewSurface(
+            Surface surface,
+            int previewWidth, int previewHeight, int previewRotation
+    )
+    {
+        if (glPreviewInterface!=null /*&& previewWidth * previewHeight == this.previewWidth * this.previewHeight*/) {
+            glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
+            if (!surfaceAttached) {
+                glPreviewInterface.addMediaCodecSurface(surface);
+            }
+            surfaceAttached = true;
+        } else {
+            Log.e(TAG, "addPreviewSurface failed");
+        }
+    }
+
+    public void removePreviewSurface()
+    {
+        if (glPreviewInterface!=null) {
+            surfaceAttached = false;
+            glPreviewInterface.removeMediaCodecSurface();
+        } else {
+            Log.e(TAG, "removePreviewSurface failed");
+        }
+    }
+
+
+
+
+
+
 
     protected abstract void startStreamRtp(String url);
 
@@ -513,9 +504,8 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         glCodecInterface.stop();
         glPreviewInterface.stop();
         cameraManager.closeCamera();
-        onPreview = false;
-        streaming = false;
-//        previewWidth = 0;
+        onPreview = streaming = surfaceAttached = false;
+        previewWidth = previewHeight = encoderWidth = encoderHeight = 0;
 //        previewHeight = 0;
 
         //    public void stopPreview() {

@@ -101,10 +101,9 @@ class RtpService : Service() {
 //
 //      }
 
-
-
-
     }
+
+
 
 
     fun addPreview(surface: Surface, width: Int, height: Int){
@@ -112,14 +111,14 @@ class RtpService : Service() {
 
       camera3Base?.let {
         if (it.isOnPreview) {
-          it.glPreviewInterface?.addMediaCodecSurface(surface)
+          it.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
         } else {
 
           camera3Base!!.setupAndStartPreview(CameraHelper.Facing.FRONT,
                   width, height, CameraHelper.getCameraOrientation(contextApp),
                   1280, 720, CameraHelper.getCameraOrientation(contextApp),
           )
-          it.glPreviewInterface?.addMediaCodecSurface(surface)
+          it.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
 
         }
       }
@@ -131,7 +130,7 @@ class RtpService : Service() {
     fun removePreview(){
       camera3Base?.let {
         if (it.isOnPreview) {
-          it.glPreviewInterface?.removeMediaCodecSurface()
+          it.removePreviewSurface()
         } else {
         }
       }
