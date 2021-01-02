@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.Camera
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -14,11 +13,8 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.rtplibrary.base.Camera2Base
 import com.pedro.rtplibrary.base.Camera3Base
 import com.pedro.rtplibrary.base.RtmpCamera3
-import com.pedro.rtplibrary.rtmp.RtmpCamera2
-import com.pedro.rtplibrary.rtsp.RtspCamera2
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 
@@ -111,13 +107,20 @@ class RtpService : Service() {
     }
 
 
-    fun addPreview(surface:Surface){
+    fun addPreview(surface: Surface, width: Int, height: Int){
 
 
       camera3Base?.let {
         if (it.isOnPreview) {
           it.glPreviewInterface?.addMediaCodecSurface(surface)
         } else {
+
+          camera3Base!!.setupAndStartPreview(CameraHelper.Facing.FRONT,
+                  width, height, CameraHelper.getCameraOrientation(contextApp),
+                  1280, 720, CameraHelper.getCameraOrientation(contextApp),
+          )
+          it.glPreviewInterface?.addMediaCodecSurface(surface)
+
         }
       }
 
@@ -142,8 +145,7 @@ class RtpService : Service() {
     fun init(context: Context) {
       contextApp = context
       if (camera3Base == null) {
-        camera3Base = RtmpCamera3(context,  connectCheckerRtp)
-        camera3Base!!.startPreview(CameraHelper.Facing.BACK, 1280,720)
+        camera3Base = RtmpCamera3(context, connectCheckerRtp)
 
 
       }
@@ -199,7 +201,7 @@ class RtpService : Service() {
   override fun onDestroy() {
     super.onDestroy()
     Log.e(TAG, "RTP service destroy")
-    stop()
+    camera3Base?.stopStream()
   }
 
 //  private fun prepareStreamRtp() {
@@ -222,7 +224,7 @@ class RtpService : Service() {
 
   private fun startStreamRtp(endpoint: String) {
     if (!camera3Base!!.isStreaming) {
-      if (camera3Base!!.prepareVideo() && camera3Base!!.prepareAudio()) {
+      if (camera3Base!!.prepareVideo() && camera3Base!!.prepareAudio()) {///FIXME!!! PARAMS codedW H
         camera3Base!!.startStream(endpoint)
       }
     } else {

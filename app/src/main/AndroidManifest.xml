@@ -105,6 +105,8 @@
         />
     <activity
         android:name=".backgroundexample.BackgroundActivity"
+        android:configChanges="orientation|screenSize"
+
         android:label="@string/service_rtp"
         />
 

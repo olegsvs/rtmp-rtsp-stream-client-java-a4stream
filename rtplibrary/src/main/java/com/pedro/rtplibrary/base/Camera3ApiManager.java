@@ -99,10 +99,9 @@ public class Camera3ApiManager extends CameraDevice.StateCallback {
     }
 
 
-    public void prepareCamera(SurfaceTexture surfaceTexture1, SurfaceTexture surfaceTexture2, int width, int height, int fps) {
+    public void prepareCamera(SurfaceTexture surfaceTexture1, SurfaceTexture surfaceTexture2,  int fps) {
 
-        surfaceTexture1.setDefaultBufferSize(width, height);
-        surfaceTexture2.setDefaultBufferSize(width, height);
+
         this.surface1 = new Surface(surfaceTexture1);
         this.surface2 = new Surface(surfaceTexture2);
         this.fps = fps;

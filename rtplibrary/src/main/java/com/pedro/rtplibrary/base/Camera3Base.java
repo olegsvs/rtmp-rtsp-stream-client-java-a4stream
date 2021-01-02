@@ -75,7 +75,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
     private boolean onPreview = false;
 //    private boolean isBackground = false;
 //    protected RecordController recordController;
-    private int previewWidth, previewHeight;
+//    private int previewWidth, previewHeight;
     private FpsListener fpsListener = new FpsListener();
 
 
@@ -352,64 +352,57 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 //        }
 //    }
 
-    /**
-     * Start camera preview. Ignored, if stream or preview is started.
-     *
-     * @param cameraFacing front or back camera. Like: {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
-     * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
-     * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
-     * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
-     */
-    public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+
+    public void setupAndStartPreview(
+            CameraHelper.Facing cameraFacing,
+            int previewWidth, int previewHeight, int previewRotation,
+            int encoderWidth, int encoderHeight, int encoderRotation
+            ) {
         if (!streaming && !onPreview) {
-            previewWidth = width;
-            previewHeight = height;
+//            previewWidth = width;
+//            previewHeight = height;
 
 
 
-            boolean isPortrait = CameraHelper.isPortrait(context);
-            if (isPortrait) {
-                glPreviewInterface.setEncoderSize(height, width);
-            } else {
-                glPreviewInterface.setEncoderSize(width, height);
-            }
-            glPreviewInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
+            glPreviewInterface.setEncoderSize(previewWidth, previewHeight);
+            glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
             glPreviewInterface.start();
 
 
-            if (isPortrait) {
-                glCodecInterface.setEncoderSize(height, width);
+            if (CameraHelper.isPortrait(context)) {
+                glCodecInterface.setEncoderSize(encoderHeight, encoderWidth);
             } else {
-                glCodecInterface.setEncoderSize(width, height);
+                glCodecInterface.setEncoderSize(encoderWidth, encoderHeight);
             }
-            glCodecInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
+            glCodecInterface.setRotation(encoderRotation == 0 ? 270 : encoderRotation - 90);
             glCodecInterface.start();
 
+            glPreviewInterface.getSurfaceTexture().setDefaultBufferSize(previewWidth, previewHeight);
+            glCodecInterface.getSurfaceTexture().setDefaultBufferSize(encoderWidth, encoderHeight);
 
-            cameraManager.prepareCamera(glPreviewInterface.getSurfaceTexture(), glCodecInterface.getSurfaceTexture(),  width, height,
-                        videoEncoder.getFps());
+            cameraManager.prepareCamera(glPreviewInterface.getSurfaceTexture(), glCodecInterface.getSurfaceTexture(),  videoEncoder.getFps());
 
             cameraManager.openCameraFacing(cameraFacing);
             onPreview = true;
         }
     }
 
-    public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
-        startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
-    }
-
-    public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
-        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
-    }
-
-    public void startPreview(CameraHelper.Facing cameraFacing) {
-        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(),
-                CameraHelper.getCameraOrientation(context));
-    }
-
-    public void startPreview() {
-        startPreview(CameraHelper.Facing.BACK);
-    }
+//    public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
+//        startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
+//    }
+//
+//    public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+//        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
+//    }
+//
+//    public void startPreview(CameraHelper.Facing cameraFacing) {
+//        startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(),
+//                CameraHelper.getCameraOrientation(context));
+//    }
+//
+//    public void startPreview() {
+//        startPreview(CameraHelper.Facing.BACK);
+//    }
 
     /**
      * Stop camera preview. Ignored if streaming or already stopped. You need call it after
@@ -445,26 +438,29 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
         resetVideoEncoder();
 
+//        videoEncoder.start();
+        audioEncoder.start();
+        microphoneManager.start();
+
         startStreamRtp(url);
-        onPreview = true;
+//        onPreview = true;
     }
 
-//    private void startEncoders() {
-//        videoEncoder.start();
-//        audioEncoder.start();
-//        prepareGlView();
-//        microphoneManager.start();
-//
-////        if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
-////                || videoEncoder.getHeight() != previewHeight) {
-////            if (onPreview) {
-////                cameraManager.openLastCamera();
-////            } else {
-////                cameraManager.openCameraBack();
-////            }
-////        }
-////        onPreview = true;
-//    }
+    /**
+     * Stop stream started with @startStream.
+     */
+    public void stopStream() {
+        if (streaming) {
+            streaming = false;
+            stopStreamRtp();
+
+            microphoneManager.stop();
+            glCodecInterface.removeMediaCodecSurface();
+            videoEncoder.stop();
+            audioEncoder.stop();
+        }
+    }
+
 
     private void resetVideoEncoder() {
         glCodecInterface.removeMediaCodecSurface();
@@ -509,41 +505,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
     protected abstract void stopStreamRtp();
 
-    /**
-     * Stop stream started with @startStream.
-     */
-    public void stopStream() {
-        if (streaming) {
-            streaming = false;
-            stopStreamRtp();
-        }
 
-        microphoneManager.stop();
-        glCodecInterface.removeMediaCodecSurface();
-        videoEncoder.stop();
-        audioEncoder.stop();
-
-//        if (!recordController.isRecording()) {
-//            onPreview = !isBackground;
-//            microphoneManager.stop();
-//            if (glInterface != null) {
-//                glInterface.removeMediaCodecSurface();
-//                if (glInterface instanceof OffScreenGlThread) {
-//                    glInterface.stop();
-//                    cameraManager.closeCamera();
-//                }
-//            } else {
-//                if (isBackground) {
-//                    cameraManager.closeCamera();
-//                } else {
-//                    cameraManager.stopRepeatingEncoder();
-//                }
-//            }
-//            videoEncoder.stop();
-//            audioEncoder.stop();
-//            recordController.resetFormats();
-//        }
-    }
 
 
     public void stop() {
@@ -552,8 +514,9 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         glPreviewInterface.stop();
         cameraManager.closeCamera();
         onPreview = false;
-        previewWidth = 0;
-        previewHeight = 0;
+        streaming = false;
+//        previewWidth = 0;
+//        previewHeight = 0;
 
         //    public void stopPreview() {
 //        if (!isStreaming() && !isRecording() && onPreview && !isBackground) {

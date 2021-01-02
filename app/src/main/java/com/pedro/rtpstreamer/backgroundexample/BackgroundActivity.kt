@@ -13,6 +13,9 @@ import kotlinx.android.synthetic.main.activity_background.*
 
 class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
+
+  private var surfaceAttached = false
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_background)
@@ -30,6 +33,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
         b_start_stop.setText(R.string.stop_button)
       }
     }
+
 
 
     switch_camera.setOnClickListener {
@@ -51,14 +55,29 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
     surfaceView.holder.addCallback(this)
   }
 
+  override fun onDestroy() {
+    if (!isMyServiceRunning(RtpService::class.java)) {
+      RtpService.stop()
+    }
+    super.onDestroy()
+  }
+
+
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-    RtpService.addPreview(holder.surface)
+    if (!surfaceAttached) {
+    RtpService.addPreview(holder.surface, p2, p3)
+//      RtpService.addPreview(holder.surface, 100, 100)
+    }
+
+    surfaceAttached = true
+
 //    RtpService.setView(surfaceView)
 //    RtpService.startPreview()
   }
 
   override fun surfaceDestroyed(holder: SurfaceHolder) {
     RtpService.removePreview()
+    surfaceAttached = false
 //    RtpService.setView(applicationContext)
 //    RtpService.stopPreview()
   }
