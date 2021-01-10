@@ -390,6 +390,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             if (!surfaceAttached) {
                 glPreviewInterface.addMediaCodecSurface(surface);
             }
+
             surfaceAttached = true;
         } else {
             Log.e(TAG, "addPreviewSurface failed");
@@ -699,13 +700,11 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         }
     }
 
-//    public GlInterface getGlInterface() {
-//        if (glInterface != null) {
-//            return glInterface;
-//        } else {
-//            throw new RuntimeException("You can't do it. You are not using Opengl");
-//        }
-//    }
+
+
+
+    public GlInterface getGlPreviewInterface() { return glPreviewInterface; }
+
 
 
 

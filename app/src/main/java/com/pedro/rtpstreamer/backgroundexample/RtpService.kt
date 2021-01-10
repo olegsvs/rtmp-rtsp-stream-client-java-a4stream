@@ -9,15 +9,28 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.pedro.encoder.input.gl.render.filters.RotationFilterRender
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.rtplibrary.base.Camera3Base
 import com.pedro.rtplibrary.base.RtmpCamera3
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
+import java.lang.Long.signum
+import java.util.*
 
+
+internal class CompareSizesByArea : Comparator<Size> {
+
+  // We cast here to ensure the multiplications won't overflow
+  @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+  override fun compare(lhs: Size, rhs: Size) =
+          signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
+
+}
 
 /**
  * Basic RTMP/RTSP service streaming implementation with camera2
@@ -106,19 +119,42 @@ class RtpService : Service() {
 
 
 
+
+
+
     fun addPreview(surface: Surface, width: Int, height: Int){
 
 
-      camera3Base?.let {
-        if (it.isOnPreview) {
-          it.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+      camera3Base?.let { cam ->
+
+        val encoderWidth = 1280
+        val encoderHeight = 720
+
+//        val largest = Collections.max(
+//                camera3Base?.resolutionsFront,
+//                CompareSizesByArea())
+//
+//        Log.i(TAG, "$largest")
+
+
+        if (cam.isOnPreview) {
+          cam.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+
+
+          cam.glPreviewInterface?.let {
+            val filter = MyScaleFilter()
+            filter.setScale(2.0f,2.0f)
+            it.setFilter(filter)
+          }
+
         } else {
 
-          camera3Base!!.setupAndStartPreview(CameraHelper.Facing.FRONT,
+          camera3Base!!.setupAndStartPreview(
+                  CameraHelper.Facing.FRONT,
                   width, height, CameraHelper.getCameraOrientation(contextApp),
-                  1280, 720, CameraHelper.getCameraOrientation(contextApp),
+                  encoderWidth, encoderHeight, CameraHelper.getCameraOrientation(contextApp),
           )
-          it.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+          cam.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
 
         }
       }
