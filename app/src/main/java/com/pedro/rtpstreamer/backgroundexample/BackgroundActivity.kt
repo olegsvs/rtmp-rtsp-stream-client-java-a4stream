@@ -82,17 +82,13 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-    RtpService.addPreview(holder.surface, p2, p3)
-//      RtpService.addPreview(holder.surface, 100, 100)
 
-//    RtpService.setView(surfaceView)
-//    RtpService.startPreview()
+    RtpService.addPreview(holder.surface, p2, p3)
   }
 
   override fun surfaceDestroyed(holder: SurfaceHolder) {
+
     RtpService.removePreview()
-//    RtpService.setView(applicationContext)
-//    RtpService.stopPreview()
   }
 
   override fun surfaceCreated(holder: SurfaceHolder) {

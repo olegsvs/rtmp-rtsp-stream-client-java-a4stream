@@ -86,16 +86,11 @@ class RtpService : Service() {
     private var openGlView: OpenGlView? = null
     private var contextApp: Context? = null
 
-//    fun setView(openGlView: OpenGlView) {
-//      this.openGlView = openGlView
-//      camera2Base?.replaceView(openGlView)
-//    }
-//
-//    fun setView(context: Context) {
-//      contextApp = context
-//      this.openGlView = null
-//      camera2Base?.replaceView(context)
-//    }
+
+    val encoderWidth = 1280
+    val encoderHeight = 720
+
+
 
     fun switchCamera() {
       camera3Base?.switchCamera()
@@ -125,48 +120,24 @@ class RtpService : Service() {
     fun addPreview(surface: Surface, width: Int, height: Int){
 
 
+      val rotation = CameraHelper.getCameraOrientation(contextApp)
+
+
       camera3Base?.let { cam ->
 
-        val encoderWidth = 1280
-        val encoderHeight = 720
-
-//        val largest = Collections.max(
-//                camera3Base?.resolutionsFront,
-//                CompareSizesByArea())
-//
-//        Log.i(TAG, "$largest")
-
-
         if (cam.isOnPreview) {
-          cam.setupPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
-
-
-//          cam.glPreviewInterface?.let {
-//            val filter = MyScaleFilter()
-//            filter.setScale(2.0f,2.0f)
-//            it.setFilter(filter)
-//          }
+          cam.setupPreviewSurface(surface, width, height, rotation)
 
         } else {
 
           camera3Base!!.setupAndStartPreview(
                   CameraHelper.Facing.FRONT,
                   width, height, CameraHelper.getCameraOrientation(contextApp),
-                  encoderWidth, encoderHeight, CameraHelper.getCameraOrientation(contextApp),
+                  encoderWidth, encoderHeight, rotation,
           )
-          cam.setupPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
-
-//          cam.glPreviewInterface?.let {
-//            val filter = MyScaleFilter()
-//            filter.setScale(2.0f,1.0f)
-//            it.setFilter(filter)
-//          }
-
+          cam.setupPreviewSurface(surface, width, height, rotation)
         }
       }
-
-
-
     }
 
     fun removePreview(){
@@ -177,6 +148,36 @@ class RtpService : Service() {
         }
       }
 
+    }
+
+    private fun startStreamRtp(endpoint: String) {
+
+      if (camera3Base!!.isStreaming)
+        return
+
+
+//      val rotation = CameraHelper.getCameraOrientation(contextApp)
+
+//      if (camera3Base!!.encoderRotation != rotation) {
+//
+//        val s = camera3Base!!.surface
+//        val w = camera3Base!!.previewWidth
+//        val h = camera3Base!!.previewHeight
+//
+//        this.stop()
+//
+//        this.addPreview(s, w, h)
+//
+//      }
+
+      if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200*1024, 2, camera3Base!!.encoderRotation, -1, -1) )
+        return
+
+      if (!camera3Base!!.prepareAudio())
+        return
+
+
+      camera3Base!!.startStream(endpoint)
     }
 
 
@@ -245,31 +246,15 @@ class RtpService : Service() {
     camera3Base?.stopStream()
   }
 
-//  private fun prepareStreamRtp() {
-//    stopStream()
-//    stopPreview()
-//    if (endpoint!!.startsWith("rtmp")) {
-//      camera2Base = if (openGlView == null) {
-//        RtmpCamera2(baseContext, true, connectCheckerRtp)
-//      } else {
-//        RtmpCamera2(openGlView, connectCheckerRtp)
-//      }
-//    } else {
-//      camera2Base = if (openGlView == null) {
-//        RtspCamera2(baseContext, true, connectCheckerRtp)
-//      } else {
-//        RtspCamera2(openGlView, connectCheckerRtp)
-//      }
-//    }
-//  }
 
-  private fun startStreamRtp(endpoint: String) {
-    if (!camera3Base!!.isStreaming) {
-      if (camera3Base!!.prepareVideo() && camera3Base!!.prepareAudio()) {///FIXME!!! PARAMS codedW H
-        camera3Base!!.startStream(endpoint)
-      }
-    } else {
-      showNotification("You are already streaming :(")
-    }
-  }
+
+
+
 }
+
+
+//        val largest = Collections.max(
+//                camera3Base?.resolutionsFront,
+//                CompareSizesByArea())
+//
+//        Log.i(TAG, "$largest")

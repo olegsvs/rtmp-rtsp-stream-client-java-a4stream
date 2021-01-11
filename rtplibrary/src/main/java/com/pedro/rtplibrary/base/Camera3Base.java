@@ -74,6 +74,27 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 //    protected RecordController recordController;
     private int previewWidth, previewHeight;
     private int encoderWidth,  encoderHeight;
+    private int encoderRotation = -1;
+
+    public int getEncoderRotation() {
+        return encoderRotation;
+    }
+
+    public int getPreviewWidth() {
+        return previewWidth;
+    }
+
+    public int getPreviewHeight() {
+        return previewHeight;
+    }
+
+    Surface surface;
+
+    public Surface getSurface() {
+        return surface;
+    }
+
+
 
     private FpsListener fpsListener = new FpsListener();
 
@@ -223,23 +244,23 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
                         FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
         return result;
     }
-
-    public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
-                                int rotation) {
-        return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, -1, -1);
-    }
+//
+//    public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+//                                int rotation) {
+//        return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, -1, -1);
+//    }
 
     /**
      * backward compatibility reason
      */
-    public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
-        return prepareVideo(width, height, fps, bitrate, 2, rotation);
-    }
-
-    public boolean prepareVideo(int width, int height, int bitrate) {
-        int rotation = CameraHelper.getCameraOrientation(context);
-        return prepareVideo(width, height, 30, bitrate, 2, rotation);
-    }
+//    public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+//        return prepareVideo(width, height, fps, bitrate, 2, rotation);
+//    }
+//
+//    public boolean prepareVideo(int width, int height, int bitrate) {
+//        int rotation = CameraHelper.getCameraOrientation(context);
+//        return prepareVideo(width, height, 30, bitrate, 2, rotation);
+//    }
 
     protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
@@ -276,10 +297,10 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
      * @return true if success, false if you get a error (Normally because the encoder selected
      * doesn't support any configuration seated or your device hasn't a H264 encoder).
      */
-    public boolean prepareVideo() {
-        int rotation = CameraHelper.getCameraOrientation(context);
-        return prepareVideo(1280, 720, 30, 1200 * 1024, rotation);
-    }
+//    public boolean prepareVideo() {
+//        int rotation = CameraHelper.getCameraOrientation(context);
+//        return prepareVideo(1280, 720, 30, 1200 * 1024, rotation);
+//    }
 
     /**
      * Same to call: prepareAudio(64 * 1024, 32000, true, false, false);
@@ -347,9 +368,9 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         if (!streaming && !onPreview) {
             this.previewWidth = previewWidth;
             this.previewHeight = previewHeight;
+            this.encoderRotation = encoderRotation;
 
-            this.encoderWidth = encoderWidth;
-            this.encoderHeight = encoderHeight;
+
 
 
 
@@ -361,11 +382,17 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             glPreviewInterface.start();
 
 
+
             if (CameraHelper.isPortrait(context)) {
-                glCodecInterface.setEncoderSize(encoderHeight, encoderWidth);
+                this.encoderWidth = encoderHeight;
+                this.encoderHeight = encoderWidth;
             } else {
-                glCodecInterface.setEncoderSize(encoderWidth, encoderHeight);
+                this.encoderWidth = encoderWidth;
+                this.encoderHeight = encoderHeight;
             }
+
+            glCodecInterface.setEncoderSize(this.encoderWidth, this.encoderHeight);
+
             glCodecInterface.setRotation(encoderRotation == 0 ? 270 : encoderRotation - 90);
             glCodecInterface.start();
 
@@ -383,6 +410,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
 
+    //FIXME: remove old filter???
     public void setupPreviewSurface(
             Surface surface,
             int previewWidth, int previewHeight, int previewRotation
@@ -390,60 +418,84 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
     {
         if (glPreviewInterface!=null ) {
 
+
+
+
+
+            //
+            //
+            //   PREVIEW
+            //
+            //
+
+            double a1 = 1.0 * Math.min(this.encoderHeight, this.encoderWidth) /  Math.max(this.encoderHeight, this.encoderWidth) ;
+            double a2 = 1.0 * Math.min(this.previewWidth, this.previewHeight) /  Math.max(this.previewWidth, this.previewHeight) ;
+
+            double scale = a1  ;
+            double translate = -1 * (1-a2);
+
+//                double scaleAll = 0.3;
+            double scaleAll = 1.0;
+//
+            MyScaleFilter3 scaleFpreview = new MyScaleFilter3();
+
+            if (previewRotation == 90 || previewRotation == 270) {
+                scaleFpreview.setScale((float) (scale * scaleAll), (float) (1.0f * scaleAll), (float) translate, 0.0f);
+
+            } else {
+                scaleFpreview.setScale((float) (1.0f * scaleAll), (float) (scale * scaleAll),  0.0f, (float) translate);
+            }
+
+
+            glPreviewInterface.setFilter(scaleFpreview);
             glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
 
 
-            if (previewRotation == 90 || previewRotation == 270) {
-                double a1 = 1.0 * encoderHeight / encoderWidth     ;
-                double a2 = 1.0 * Math.min(this.previewWidth, this.previewHeight) /  Math.max(this.previewWidth, this.previewHeight)    ;
+            //
+            //
+            //   ENCODE
+            //
+            //
 
-                double scaleX = a1  ;
-                double translateX = -1 * (1-a2);
-//                double scaleAll = 0.3;
-                double scaleAll = 1.0;
-//
-                MyScaleFilter3 scaleF = new MyScaleFilter3();
-                scaleF.setScale((float) (scaleX * scaleAll), (float) (1.0f * scaleAll), (float) translateX, 0.0f);
-                glPreviewInterface.setFilter(scaleF);
 
+            MyScaleFilter3 scaleFencode = new MyScaleFilter3();
+
+            if (this.encoderHeight > this.encoderWidth) {
+                if (CameraHelper.isPortrait(context)) {
+                    scaleFencode.setScale(1.0f, (float) (1.0f), (float) 0.0f, 0.0f);
+                } else {
+                    double a = 1.0 * this.encoderWidth / this.encoderHeight;
+                    double b = a * a;
+
+                    scaleFencode.setScale(1.0f, (float) (1.0f * b), (float) 0.0f, 0.0f);
+                }
+                glCodecInterface.setFilter(scaleFencode);
+
+            } else if (this.encoderHeight < this.encoderWidth) {
+
+                if (CameraHelper.isPortrait(context)) {
+                    double a = 1.0 * this.encoderHeight / this.encoderWidth;
+                    double b = a * a;
+
+                    scaleFencode.setScale((float) (1.0f * b), 1.0f, (float) 0.0f, 0.0f);
+
+                } else {
+                    scaleFencode.setScale(1.0f, (float) (1.0f), (float) 0.0f, 0.0f);
+
+                }
+                glCodecInterface.setFilter(scaleFencode);
 
             }
 
-            if (previewRotation == 180 || previewRotation == 0) {
-
-                double a1 = 1.0 * encoderHeight / encoderWidth     ;
-                double a2 = 1.0 * Math.min(previewWidth, previewHeight) /  Math.max(previewWidth, previewHeight)    ;
-
-                double scaleY = a1  ;
-                double translateY = -1 * (1-a2);
-//                double scaleAll = 0.3;
-                double scaleAll = 1.0;
-//
-                MyScaleFilter3 scaleF = new MyScaleFilter3();
-                scaleF.setScale((float) (1.0f * scaleAll), (float) (scaleY * scaleAll),  0.0f, (float) translateY);
-                glPreviewInterface.setFilter(scaleF);
+            glCodecInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
 
 
-            }
-
-//            if (previewRotation == 90 || previewRotation == 270) {
-//
-//                double scaleX = 1.0 * previewHeight / Math.max(previewWidth, previewHeight) ;
-//
-//                MyScaleFilter3 scaleF = new MyScaleFilter3();
-//                scaleF.setScale((float) scaleX, 1.0f, 0.0f, 0.0f);
-////                scaleF.setScale(1.0f, (float) .9);
-//                glPreviewInterface.setFilter(scaleF);
-//                //FIXME: remove old???
-//            }
 
 
-//            this.previewWidth;
-//            this.previewHeight;
-
-
-            if (!surfaceAttached)
+            if (!surfaceAttached) {
+                this.surface = surface;
                 glPreviewInterface.addMediaCodecSurface(surface);
+            }
 
 
             surfaceAttached = true;
@@ -456,6 +508,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
     {
         if (glPreviewInterface!=null) {
             surfaceAttached = false;
+            surface = null;
             glPreviewInterface.removeMediaCodecSurface();
         } else {
             Log.e(TAG, "removePreviewSurface failed");
@@ -562,6 +615,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         cameraManager.closeCamera();
         onPreview = streaming = surfaceAttached = false;
         previewWidth = previewHeight = encoderWidth = encoderHeight = 0;
+        surface = null;
 //        previewHeight = 0;
 
         //    public void stopPreview() {
