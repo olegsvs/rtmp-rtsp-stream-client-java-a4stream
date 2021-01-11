@@ -3,8 +3,13 @@ package com.pedro.rtpstreamer.backgroundexample
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.encoder.input.video.CameraOpenException
@@ -15,9 +20,23 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
 
 
+
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+
+
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
     setContentView(R.layout.activity_background)
+    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+
+
+    getSupportActionBar()?.hide();
+
     et_rtp_url.setText("rtmp://192.168.1.199/live/one")
     et_rtp_url.setText("rtmp://flutter-webrtc.kuzalex.com/live/one")
     RtpService.init(this)

@@ -353,7 +353,10 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
 
-            glPreviewInterface.setEncoderSize(previewWidth, previewHeight);
+            glPreviewInterface.setEncoderSize(
+                    Math.max(previewWidth, previewHeight),
+                    Math.max(previewWidth, previewHeight)
+            );
             glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
             glPreviewInterface.start();
 
@@ -366,7 +369,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             glCodecInterface.setRotation(encoderRotation == 0 ? 270 : encoderRotation - 90);
             glCodecInterface.start();
 
-            glPreviewInterface.getSurfaceTexture().setDefaultBufferSize(previewWidth, previewHeight);
+            glPreviewInterface.getSurfaceTexture().setDefaultBufferSize(encoderWidth, encoderHeight);
             glCodecInterface.getSurfaceTexture().setDefaultBufferSize(encoderWidth, encoderHeight);
 
             cameraManager.prepareCamera(glPreviewInterface.getSurfaceTexture(), glCodecInterface.getSurfaceTexture(),  videoEncoder.getFps());
@@ -380,16 +383,68 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
 
-    public void addPreviewSurface(
+    public void setupPreviewSurface(
             Surface surface,
             int previewWidth, int previewHeight, int previewRotation
     )
     {
-        if (glPreviewInterface!=null /*&& previewWidth * previewHeight == this.previewWidth * this.previewHeight*/) {
+        if (glPreviewInterface!=null ) {
+
             glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
-            if (!surfaceAttached) {
-                glPreviewInterface.addMediaCodecSurface(surface);
+
+
+            if (previewRotation == 90 || previewRotation == 270) {
+                double a1 = 1.0 * encoderHeight / encoderWidth     ;
+                double a2 = 1.0 * Math.min(this.previewWidth, this.previewHeight) /  Math.max(this.previewWidth, this.previewHeight)    ;
+
+                double scaleX = a1  ;
+                double translateX = -1 * (1-a2);
+//                double scaleAll = 0.3;
+                double scaleAll = 1.0;
+//
+                MyScaleFilter3 scaleF = new MyScaleFilter3();
+                scaleF.setScale((float) (scaleX * scaleAll), (float) (1.0f * scaleAll), (float) translateX, 0.0f);
+                glPreviewInterface.setFilter(scaleF);
+
+
             }
+
+            if (previewRotation == 180 || previewRotation == 0) {
+
+                double a1 = 1.0 * encoderHeight / encoderWidth     ;
+                double a2 = 1.0 * Math.min(previewWidth, previewHeight) /  Math.max(previewWidth, previewHeight)    ;
+
+                double scaleY = a1  ;
+                double translateY = -1 * (1-a2);
+//                double scaleAll = 0.3;
+                double scaleAll = 1.0;
+//
+                MyScaleFilter3 scaleF = new MyScaleFilter3();
+                scaleF.setScale((float) (1.0f * scaleAll), (float) (scaleY * scaleAll),  0.0f, (float) translateY);
+                glPreviewInterface.setFilter(scaleF);
+
+
+            }
+
+//            if (previewRotation == 90 || previewRotation == 270) {
+//
+//                double scaleX = 1.0 * previewHeight / Math.max(previewWidth, previewHeight) ;
+//
+//                MyScaleFilter3 scaleF = new MyScaleFilter3();
+//                scaleF.setScale((float) scaleX, 1.0f, 0.0f, 0.0f);
+////                scaleF.setScale(1.0f, (float) .9);
+//                glPreviewInterface.setFilter(scaleF);
+//                //FIXME: remove old???
+//            }
+
+
+//            this.previewWidth;
+//            this.previewHeight;
+
+
+            if (!surfaceAttached)
+                glPreviewInterface.addMediaCodecSurface(surface);
+
 
             surfaceAttached = true;
         } else {

@@ -138,14 +138,14 @@ class RtpService : Service() {
 
 
         if (cam.isOnPreview) {
-          cam.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+          cam.setupPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
 
 
-          cam.glPreviewInterface?.let {
-            val filter = MyScaleFilter()
-            filter.setScale(2.0f,2.0f)
-            it.setFilter(filter)
-          }
+//          cam.glPreviewInterface?.let {
+//            val filter = MyScaleFilter()
+//            filter.setScale(2.0f,2.0f)
+//            it.setFilter(filter)
+//          }
 
         } else {
 
@@ -154,7 +154,13 @@ class RtpService : Service() {
                   width, height, CameraHelper.getCameraOrientation(contextApp),
                   encoderWidth, encoderHeight, CameraHelper.getCameraOrientation(contextApp),
           )
-          cam.addPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+          cam.setupPreviewSurface(surface, width, height, CameraHelper.getCameraOrientation(contextApp))
+
+//          cam.glPreviewInterface?.let {
+//            val filter = MyScaleFilter()
+//            filter.setScale(2.0f,1.0f)
+//            it.setFilter(filter)
+//          }
 
         }
       }
