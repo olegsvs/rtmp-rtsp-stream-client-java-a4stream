@@ -13,7 +13,6 @@ import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.pedro.encoder.input.gl.render.filters.RotationFilterRender
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.rtplibrary.base.Camera3Base
 import com.pedro.rtplibrary.base.RtmpCamera3
@@ -87,13 +86,30 @@ class RtpService : Service() {
     private var contextApp: Context? = null
 
 
+    private var lastPreviewWidth : Int? = null
+    private var lastPreviewHeight : Int? = null
+    private var lastRotation : Int? = null
+
+
+
     val encoderWidth = 1280
     val encoderHeight = 720
-
+//    val encoderWidth = 1280
+//    val encoderHeight = 960
+//    val encoderWidth = 176
+//    val encoderHeight = 144
 
 
     fun switchCamera() {
       camera3Base?.switchCamera()
+
+
+      camera3Base?.let { cam ->
+
+        if (cam.isOnPreview && lastPreviewWidth!=null && lastPreviewHeight!=null && lastRotation!=null) {
+          cam.setupPreviewSurface(cam.surface, lastPreviewWidth!!, lastPreviewHeight!!, lastRotation!!)
+        }
+      }
     }
 
     private var test = false
@@ -112,6 +128,41 @@ class RtpService : Service() {
     }
 
 
+    private fun chooseOptimalSize(outputSizes: MutableList<Size>, width: Int, height: Int): Size? {
+      val preferredRatio = width / height.toDouble()
+      var currentOptimalSize = outputSizes[0]
+      var currentOptimalRatio = currentOptimalSize.width / currentOptimalSize.height.toDouble()
+      for (currentSize in outputSizes) {
+        val currentRatio = currentSize.width / currentSize.height.toDouble()
+        if (Math.abs(preferredRatio - currentRatio) <
+                Math.abs(preferredRatio - currentOptimalRatio)) {
+          currentOptimalSize = currentSize
+          currentOptimalRatio = currentRatio
+        }
+      }
+      return currentOptimalSize
+    }
+
+    // Finds the closest Size to (|width|x|height|) in |sizes|, and returns it or null.
+    // Ignores |width| or |height| if either is zero (== don't care).
+    private fun findClosestSizeInArray(sizes: MutableList<Size>, width: Int, height: Int): Size? {
+      if (sizes == null) return null
+      var closestSize: Size? = null
+      var minDiff = Int.MAX_VALUE
+      for (size in sizes) {
+        val diff = ((if (width > 0) Math.abs(size.width - width) else 0)
+                + if (height > 0) Math.abs(size.height - height) else 0)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestSize = size
+        }
+      }
+      if (minDiff == Int.MAX_VALUE) {
+        Log.e(TAG, "Couldn't find resolution close to ($width x $height)")
+        return null
+      }
+      return closestSize
+    }
 
 
 
@@ -123,19 +174,38 @@ class RtpService : Service() {
       val rotation = CameraHelper.getCameraOrientation(contextApp)
 
 
+
+      val largest = Collections.max(
+              camera3Base?.resolutionsFront,
+              CompareSizesByArea())
+      Log.i(TAG, "$largest")
+
+
+      camera3Base?.resolutionsFront?.let {
+        val sz =  findClosestSizeInArray(it, Math.max(encoderWidth, encoderHeight), Math.min(encoderWidth, encoderHeight))
+        Log.i(TAG, "$sz")
+      }
+
+
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview) {
           cam.setupPreviewSurface(surface, width, height, rotation)
+          lastPreviewWidth = width
+          lastPreviewHeight = height
+          lastRotation = rotation
 
         } else {
 
           camera3Base!!.setupAndStartPreview(
-                  CameraHelper.Facing.FRONT,
+                  CameraHelper.Facing.BACK,
                   width, height, CameraHelper.getCameraOrientation(contextApp),
                   encoderWidth, encoderHeight, rotation,
           )
           cam.setupPreviewSurface(surface, width, height, rotation)
+          lastPreviewWidth = width
+          lastPreviewHeight = height
+          lastRotation = rotation
         }
       }
     }
@@ -170,7 +240,7 @@ class RtpService : Service() {
 //
 //      }
 
-      if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200*1024, 2, camera3Base!!.encoderRotation, -1, -1) )
+      if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200 * 1024, 2, camera3Base!!.encoderRotation, -1, -1) )
         return
 
       if (!camera3Base!!.prepareAudio())
@@ -253,8 +323,3 @@ class RtpService : Service() {
 }
 
 
-//        val largest = Collections.max(
-//                camera3Base?.resolutionsFront,
-//                CompareSizesByArea())
-//
-//        Log.i(TAG, "$largest")

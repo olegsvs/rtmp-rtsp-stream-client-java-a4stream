@@ -28,6 +28,9 @@ android {
       signingConfig signingConfigs.rel
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
+    debug {
+      signingConfig signingConfigs.rel
+    }
   }
 }
 

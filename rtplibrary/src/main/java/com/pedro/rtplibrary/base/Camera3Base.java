@@ -53,7 +53,7 @@ import java.util.List;
 public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrophoneData {
 
 
-    private final String TAG = "Camera2ApiManager";
+    private final String TAG = "Camera3Base";
 
     protected Context context;
     public Camera3ApiManager cameraManager;
@@ -408,6 +408,32 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
     }
 
 
+    // Finds the closest Size to (|width|x|height|) in |sizes|, and returns it or null.
+    // Ignores |width| or |height| if either is zero (== don't care).
+    private Size findClosestSizeInArray(Size[] sizes, int width, int height) {
+        if (sizes == null) return null;
+        Size closestSize = null;
+        int minDiff = Integer.MAX_VALUE;
+        for (Size size : sizes) {
+            final int diff = ((width > 0) ? Math.abs(size.getWidth() - width) : 0)
+                    + ((height > 0) ? Math.abs(size.getHeight() - height) : 0);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestSize = size;
+            }
+        }
+       // Log.e(TAG, "Couldn't find resolution close to ("+width+"x"+height+")");
+
+        if (minDiff == Integer.MAX_VALUE) {
+            Log.e(TAG, "Couldn't find resolution close to ("+width+"x"+height+")");
+            return null;
+        }
+        if (closestSize!=null)
+            Log.e(TAG, " --- --- --- CLOSEST SIZE IS  ("+closestSize.getWidth()+"x"+closestSize.getHeight()+")");
+
+        return closestSize;
+    }
+
 
 
     //FIXME: remove old filter???
@@ -420,6 +446,25 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
 
+            double encoderAspect =  1.0 * Math.min(this.encoderHeight, this.encoderWidth) /  Math.max(this.encoderHeight, this.encoderWidth) ;
+            double realEncoderAspect = encoderAspect;
+
+            if (cameraManager!=null) {
+                //
+                // Реальное разрешение может не совпадать с encoderWidth encoderHeight
+                // Пытаемся угадать реальное разрешение камеры для правильного расчета aspect rate
+
+                Size closestSize = findClosestSizeInArray(
+                        cameraManager.isFrontCamera() ? cameraManager.getCameraResolutionsFront() : cameraManager.getCameraResolutionsBack(),
+                        Math.max(encoderWidth, encoderHeight),
+                        Math.min(encoderWidth, encoderHeight)
+                );
+                if (closestSize != null) {
+                    realEncoderAspect = 1.0 * Math.min(closestSize.getHeight(), closestSize.getWidth()) / Math.max(closestSize.getHeight(), closestSize.getWidth());
+                }
+
+            }
+
 
 
             //
@@ -428,10 +473,15 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             //
             //
 
-            double a1 = 1.0 * Math.min(this.encoderHeight, this.encoderWidth) /  Math.max(this.encoderHeight, this.encoderWidth) ;
+
+
+
+
+
+
             double a2 = 1.0 * Math.min(this.previewWidth, this.previewHeight) /  Math.max(this.previewWidth, this.previewHeight) ;
 
-            double scale = a1  ;
+            double scale = realEncoderAspect  ;
             double translate = -1 * (1-a2);
 
 //                double scaleAll = 0.3;
@@ -462,25 +512,29 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
             if (this.encoderHeight > this.encoderWidth) {
                 if (CameraHelper.isPortrait(context)) {
-                    scaleFencode.setScale(1.0f, (float) (1.0f), (float) 0.0f, 0.0f);
+                    scaleFencode.setScale(1.0f, (float) ( encoderAspect / realEncoderAspect), (float) 0.0f, 0.0f);
+                    Log.e(TAG, "-- CASE 1 --");
                 } else {
-                    double a = 1.0 * this.encoderWidth / this.encoderHeight;
-                    double b = a * a;
+                    double a = realEncoderAspect;
+                    double b = a * a * (encoderAspect / realEncoderAspect);
 
                     scaleFencode.setScale(1.0f, (float) (1.0f * b), (float) 0.0f, 0.0f);
+                    Log.e(TAG, "-- CASE 2 --");
                 }
                 glCodecInterface.setFilter(scaleFencode);
 
             } else if (this.encoderHeight < this.encoderWidth) {
 
                 if (CameraHelper.isPortrait(context)) {
-                    double a = 1.0 * this.encoderHeight / this.encoderWidth;
-                    double b = a * a;
+                    double a = realEncoderAspect;
+                    double b = a * a * (encoderAspect / realEncoderAspect);
 
                     scaleFencode.setScale((float) (1.0f * b), 1.0f, (float) 0.0f, 0.0f);
+                    Log.e(TAG, "-- CASE 3 --");
 
                 } else {
-                    scaleFencode.setScale(1.0f, (float) (1.0f), (float) 0.0f, 0.0f);
+                    scaleFencode.setScale((float)(encoderAspect / realEncoderAspect), (float) (1.0f), (float) 0.0f, 0.0f);
+                    Log.e(TAG, "-- CASE 4 --");
 
                 }
                 glCodecInterface.setFilter(scaleFencode);
