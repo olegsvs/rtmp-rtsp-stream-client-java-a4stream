@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.base;
+package com.pedro.rtplibrary.kuzalex;
 
 import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
@@ -10,11 +10,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -32,18 +28,11 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.Camera2Base;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
-import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
-import com.pedro.rtplibrary.view.OpenGlView;
 
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-import net.ossrs.rtmp.SrsFlvMuxer;
-
-import java.io.FileDescriptor;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;

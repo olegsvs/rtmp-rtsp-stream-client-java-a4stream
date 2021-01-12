@@ -14,8 +14,8 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.rtplibrary.base.Camera3Base
-import com.pedro.rtplibrary.base.RtmpCamera3
+import com.pedro.rtplibrary.kuzalex.Camera3Base
+import com.pedro.rtplibrary.kuzalex.RtmpCamera3
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 import java.lang.Long.signum

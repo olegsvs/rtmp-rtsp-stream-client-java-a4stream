@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.base;
+package com.pedro.rtplibrary.kuzalex;
 
 import android.content.Context;
 import android.opengl.GLES20;

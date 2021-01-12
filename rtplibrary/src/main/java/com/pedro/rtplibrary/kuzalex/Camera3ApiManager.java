@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.base;
+package com.pedro.rtplibrary.kuzalex;
 
 
 import android.annotation.SuppressLint;
@@ -24,8 +24,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.TextureView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -123,7 +122,7 @@ public class Camera3ApiManager extends CameraDevice.StateCallback {
                    cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    com.pedro.rtplibrary.base.Camera3ApiManager.this.cameraCaptureSession = cameraCaptureSession;
+                    Camera3ApiManager.this.cameraCaptureSession = cameraCaptureSession;
                     try {
                         CaptureRequest captureRequest = drawSurface(listSurfaces);
                         if (captureRequest != null) {

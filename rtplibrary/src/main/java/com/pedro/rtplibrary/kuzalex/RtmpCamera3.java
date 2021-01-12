@@ -1,15 +1,12 @@
-package com.pedro.rtplibrary.base;
+package com.pedro.rtplibrary.kuzalex;
 
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.rtplibrary.view.LightOpenGlView;
-import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtplibrary.kuzalex.Camera3Base;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
