@@ -107,7 +107,7 @@ class RtpService : Service() {
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview && lastPreviewWidth!=null && lastPreviewHeight!=null && lastRotation!=null) {
-          cam.setupPreviewSurface(cam.surface, lastPreviewWidth!!, lastPreviewHeight!!, lastRotation!!)
+          cam.setupPreviewSurface(cam.surface,  lastRotation!!)
         }
       }
     }
@@ -128,20 +128,20 @@ class RtpService : Service() {
     }
 
 
-    private fun chooseOptimalSize(outputSizes: MutableList<Size>, width: Int, height: Int): Size? {
-      val preferredRatio = width / height.toDouble()
-      var currentOptimalSize = outputSizes[0]
-      var currentOptimalRatio = currentOptimalSize.width / currentOptimalSize.height.toDouble()
-      for (currentSize in outputSizes) {
-        val currentRatio = currentSize.width / currentSize.height.toDouble()
-        if (Math.abs(preferredRatio - currentRatio) <
-                Math.abs(preferredRatio - currentOptimalRatio)) {
-          currentOptimalSize = currentSize
-          currentOptimalRatio = currentRatio
-        }
-      }
-      return currentOptimalSize
-    }
+//    private fun chooseOptimalSize(outputSizes: MutableList<Size>, width: Int, height: Int): Size? {
+//      val preferredRatio = width / height.toDouble()
+//      var currentOptimalSize = outputSizes[0]
+//      var currentOptimalRatio = currentOptimalSize.width / currentOptimalSize.height.toDouble()
+//      for (currentSize in outputSizes) {
+//        val currentRatio = currentSize.width / currentSize.height.toDouble()
+//        if (Math.abs(preferredRatio - currentRatio) <
+//                Math.abs(preferredRatio - currentOptimalRatio)) {
+//          currentOptimalSize = currentSize
+//          currentOptimalRatio = currentRatio
+//        }
+//      }
+//      return currentOptimalSize
+//    }
 
     // Finds the closest Size to (|width|x|height|) in |sizes|, and returns it or null.
     // Ignores |width| or |height| if either is zero (== don't care).
@@ -190,7 +190,7 @@ class RtpService : Service() {
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview) {
-          cam.setupPreviewSurface(surface, width, height, rotation)
+          cam.setupPreviewSurface(surface, rotation)
           lastPreviewWidth = width
           lastPreviewHeight = height
           lastRotation = rotation
@@ -202,7 +202,7 @@ class RtpService : Service() {
                   width, height, CameraHelper.getCameraOrientation(contextApp),
                   encoderWidth, encoderHeight, rotation,
           )
-          cam.setupPreviewSurface(surface, width, height, rotation)
+          cam.setupPreviewSurface(surface, rotation)
           lastPreviewWidth = width
           lastPreviewHeight = height
           lastRotation = rotation
@@ -226,19 +226,7 @@ class RtpService : Service() {
         return
 
 
-//      val rotation = CameraHelper.getCameraOrientation(contextApp)
 
-//      if (camera3Base!!.encoderRotation != rotation) {
-//
-//        val s = camera3Base!!.surface
-//        val w = camera3Base!!.previewWidth
-//        val h = camera3Base!!.previewHeight
-//
-//        this.stop()
-//
-//        this.addPreview(s, w, h)
-//
-//      }
 
       if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200 * 1024, 2, camera3Base!!.encoderRotation, -1, -1) )
         return
@@ -268,6 +256,9 @@ class RtpService : Service() {
         camera3Base!!.stop()
       }
     }
+
+
+
 
 
 
@@ -315,10 +306,6 @@ class RtpService : Service() {
     Log.e(TAG, "RTP service destroy")
     camera3Base?.stopStream()
   }
-
-
-
-
 
 }
 

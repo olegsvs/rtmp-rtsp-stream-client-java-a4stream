@@ -428,7 +428,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
     //FIXME: remove old filter???
     public void setupPreviewSurface(
             Surface surface,
-            int previewWidth, int previewHeight, int previewRotation
+            int rotation
     )
     {
         if (glPreviewInterface!=null ) {
@@ -478,7 +478,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 //
             MyScaleFilter3 scaleFpreview = new MyScaleFilter3();
 
-            if (previewRotation == 90 || previewRotation == 270) {
+            if (rotation == 90 || rotation == 270) {
                 scaleFpreview.setScale((float) (scale * scaleAll), (float) (1.0f * scaleAll), (float) translate, 0.0f);
 
             } else {
@@ -487,7 +487,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
 
             glPreviewInterface.setFilter(scaleFpreview);
-            glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
+            glPreviewInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
 
 
             //
@@ -500,7 +500,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             MyScaleFilter3 scaleFencode = new MyScaleFilter3();
 
             if (this.encoderHeight > this.encoderWidth) {
-                if (CameraHelper.isPortrait(context)) {
+                if (CameraHelper.isPortrait(rotation)) {
                     scaleFencode.setScale(1.0f, (float) ( encoderAspect / realEncoderAspect), (float) 0.0f, 0.0f);
                     Log.e(TAG, "-- CASE 1 --");
                 } else {
@@ -514,7 +514,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
             } else if (this.encoderHeight < this.encoderWidth) {
 
-                if (CameraHelper.isPortrait(context)) {
+                if (CameraHelper.isPortrait(rotation)) {
                     double a = realEncoderAspect;
                     double b = a * a * (encoderAspect / realEncoderAspect);
 
@@ -530,7 +530,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
             }
 
-            glCodecInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
+            glCodecInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
 
 
 
