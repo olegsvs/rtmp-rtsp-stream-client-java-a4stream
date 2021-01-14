@@ -351,13 +351,13 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
     public void setupAndStartPreview(
             CameraHelper.Facing cameraFacing,
-            int previewWidth, int previewHeight, int previewRotation,
-            int encoderWidth, int encoderHeight, int encoderRotation
+            int previewWidth, int previewHeight,
+            int encoderWidth, int encoderHeight, int rotation
             ) {
         if (!streaming && !onPreview) {
             this.previewWidth = previewWidth;
             this.previewHeight = previewHeight;
-            this.encoderRotation = encoderRotation;
+            this.encoderRotation = rotation;
 
 
 
@@ -367,12 +367,12 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
                     Math.max(previewWidth, previewHeight),
                     Math.max(previewWidth, previewHeight)
             );
-            glPreviewInterface.setRotation(previewRotation == 0 ? 270 : previewRotation - 90);
+            glPreviewInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
             glPreviewInterface.start();
 
 
 
-            if (CameraHelper.isPortrait(context)) {
+            if (CameraHelper.isPortrait(rotation)) {
                 this.encoderWidth = encoderHeight;
                 this.encoderHeight = encoderWidth;
             } else {
@@ -382,7 +382,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
 
             glCodecInterface.setEncoderSize(this.encoderWidth, this.encoderHeight);
 
-            glCodecInterface.setRotation(encoderRotation == 0 ? 270 : encoderRotation - 90);
+            glCodecInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
             glCodecInterface.start();
 
             glPreviewInterface.getSurfaceTexture().setDefaultBufferSize(encoderWidth, encoderHeight);

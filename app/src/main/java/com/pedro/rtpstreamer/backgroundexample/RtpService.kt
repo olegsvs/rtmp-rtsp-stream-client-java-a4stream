@@ -199,7 +199,7 @@ class RtpService : Service() {
 
           camera3Base!!.setupAndStartPreview(
                   CameraHelper.Facing.BACK,
-                  width, height, CameraHelper.getCameraOrientation(contextApp),
+                  width, height,
                   encoderWidth, encoderHeight, rotation,
           )
           cam.setupPreviewSurface(surface, rotation)
