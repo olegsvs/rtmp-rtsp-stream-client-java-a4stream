@@ -479,10 +479,27 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             MyScaleFilter3 scaleFpreview = new MyScaleFilter3();
 
             if (rotation == 90 || rotation == 270) {
-                scaleFpreview.setScale((float) (scale * scaleAll), (float) (1.0f * scaleAll), (float) translate, 0.0f);
+                if (a2 < scale) {
+                    double a3 = a2 / scale;
+                    scaleFpreview.setScale((float) (scale * a3 * scaleAll), (float) (1.0f * a3 * scaleAll), (float) translate, 0.0f);
+                } else {
+                    scaleFpreview.setScale((float) (scale * scaleAll), (float) (1.0f * scaleAll), (float) translate, 0.0f);
+                }
+
+//                scaleFpreview.setScale((float) (scale * scaleAll), (float) (1.0f * scaleAll), (float) translate, 0.0f);
+
 
             } else {
-                scaleFpreview.setScale((float) (1.0f * scaleAll), (float) (scale * scaleAll),  0.0f, (float) translate);
+
+                if (a2 < scale) {
+                    double a3 = a2 / scale;
+                    scaleFpreview.setScale((float) (1.0f * a3 * scaleAll), (float) (scale * a3 * scaleAll),  0.0f, (float) translate);
+                } else {
+                    scaleFpreview.setScale((float) (1.0f * scaleAll), (float) (scale * scaleAll),  0.0f, (float) translate);
+                }
+
+//                scaleFpreview.setScale((float) (1.0f * scaleAll), (float) (scale * scaleAll),  0.0f, (float) translate);
+
             }
 
 
