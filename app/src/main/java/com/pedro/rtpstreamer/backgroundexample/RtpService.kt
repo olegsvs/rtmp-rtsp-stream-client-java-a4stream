@@ -91,6 +91,8 @@ class RtpService : Service() {
     private var lastRotation : Int? = null
 
 
+    val encoderWidth = 640
+    val encoderHeight = 480
 
 //    val encoderWidth = 1280
 //    val encoderHeight = 720
@@ -98,8 +100,8 @@ class RtpService : Service() {
 //    val encoderHeight = 960
 //    val encoderWidth = 176
 //    val encoderHeight = 144
-    val encoderWidth = 720
-    val encoderHeight = 720
+//    val encoderWidth = 720
+//    val encoderHeight = 720
 //    val encoderWidth = 1024
 //    val encoderHeight = 768
 

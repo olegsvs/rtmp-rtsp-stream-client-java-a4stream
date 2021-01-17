@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.Window
@@ -83,10 +84,13 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
 
+    Log.e("kuzalex", "surfaceChanged")
     RtpService.addPreview(holder.surface, p2, p3)
   }
 
   override fun surfaceDestroyed(holder: SurfaceHolder) {
+
+    Log.e("kuzalex", "surfaceDestroyed")
 
     RtpService.removePreview()
   }

@@ -673,6 +673,10 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         glCodecInterface.stop();
         glPreviewInterface.stop();
         cameraManager.closeCamera();
+
+        glPreviewInterface.removeMediaCodecSurface();
+        glCodecInterface.removeMediaCodecSurface();
+
         onPreview = streaming = surfaceAttached = false;
         previewWidth = previewHeight = encoderWidth = encoderHeight = 0;
         surface = null;
