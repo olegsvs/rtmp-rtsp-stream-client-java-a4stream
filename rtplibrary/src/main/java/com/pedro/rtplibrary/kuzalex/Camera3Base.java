@@ -368,6 +368,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
                     Math.max(previewWidth, previewHeight)
             );
             glPreviewInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
+            glPreviewInterface.muteVideo();
             glPreviewInterface.start();
 
 
@@ -555,6 +556,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
             if (!surfaceAttached) {
                 this.surface = surface;
                 glPreviewInterface.addMediaCodecSurface(surface);
+                glPreviewInterface.unMuteVideo();
             }
 
 
@@ -569,6 +571,7 @@ public abstract class Camera3Base implements GetAacData, GetVideoData, GetMicrop
         if (glPreviewInterface!=null) {
             surfaceAttached = false;
             surface = null;
+            glPreviewInterface.muteVideo();
             glPreviewInterface.removeMediaCodecSurface();
         } else {
             Log.e(TAG, "removePreviewSurface failed");

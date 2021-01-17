@@ -243,6 +243,13 @@ public class OffScreenGlThread
             kuzalex_startTS = System.currentTimeMillis();
           }
 
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.take();
+            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+          } else if (loadAA) {
+            textureManager.enableAA(AAEnabled);
+            loadAA = false;
+          }
 
           frameAvailable = false;
           surfaceManager.makeCurrent();
@@ -276,13 +283,13 @@ public class OffScreenGlThread
             if (surfaceManagerEncoder != null) surfaceManagerEncoder.swapBuffer();
             else if (surfaceManagerPhoto != null) surfaceManagerPhoto.swapBuffer();
           }
-          if (!filterQueue.isEmpty()) {
-            Filter filter = filterQueue.take();
-            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            textureManager.enableAA(AAEnabled);
-            loadAA = false;
-          }
+//          if (!filterQueue.isEmpty()) {
+//            Filter filter = filterQueue.take();
+//            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+//          } else if (loadAA) {
+//            textureManager.enableAA(AAEnabled);
+//            loadAA = false;
+//          }
         }
       }
     } catch (InterruptedException ignore) {

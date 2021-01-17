@@ -102,11 +102,12 @@
         android:name=".displayexample.DisplayActivity"
         android:label="@string/display_rtmp"
         android:screenOrientation="portrait"
-        android:configChanges="orientation|screenSize"
 
         />
     <activity
         android:name=".backgroundexample.BackgroundActivity"
+        android:configChanges="orientation|screenSize"
+
 
         android:label="@string/service_rtp"
         />
