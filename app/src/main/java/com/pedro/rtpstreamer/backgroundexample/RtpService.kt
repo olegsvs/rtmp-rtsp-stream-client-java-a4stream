@@ -15,7 +15,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.rtplibrary.kuzalex.Camera3Base
+import com.pedro.rtplibrary.kuzalex.Camera4Base
 import com.pedro.rtplibrary.kuzalex.RtmpCamera3
+import com.pedro.rtplibrary.kuzalex.RtmpCamera4
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 import java.lang.Long.signum
@@ -81,8 +83,8 @@ class RtpService : Service() {
     private val channelId = "rtpStreamChannel"
     private val notifyId = 123456
     private var notificationManager: NotificationManager? = null
-    private var camera3Base: Camera3Base? = null
-    private var openGlView: OpenGlView? = null
+    private var camera3Base: Camera4Base? = null
+//    private var openGlView: OpenGlView? = null
     private var contextApp: Context? = null
 
 
@@ -117,37 +119,6 @@ class RtpService : Service() {
         }
       }
     }
-
-    private var test = false
-    fun test() {
-//      if (test){
-//        test=!test
-//        camera2Base?.cameraManager?.testStartRepeatingEncoder1()
-//
-//      } else {
-//        test=!test
-//        camera2Base?.cameraManager?.testStopRepeatingEncoder1()
-//
-//
-//      }
-
-    }
-
-
-//    private fun chooseOptimalSize(outputSizes: MutableList<Size>, width: Int, height: Int): Size? {
-//      val preferredRatio = width / height.toDouble()
-//      var currentOptimalSize = outputSizes[0]
-//      var currentOptimalRatio = currentOptimalSize.width / currentOptimalSize.height.toDouble()
-//      for (currentSize in outputSizes) {
-//        val currentRatio = currentSize.width / currentSize.height.toDouble()
-//        if (Math.abs(preferredRatio - currentRatio) <
-//                Math.abs(preferredRatio - currentOptimalRatio)) {
-//          currentOptimalSize = currentSize
-//          currentOptimalRatio = currentRatio
-//        }
-//      }
-//      return currentOptimalSize
-//    }
 
     // Finds the closest Size to (|width|x|height|) in |sizes|, and returns it or null.
     // Ignores |width| or |height| if either is zero (== don't care).
@@ -251,7 +222,7 @@ class RtpService : Service() {
     fun init(context: Context) {
       contextApp = context
       if (camera3Base == null) {
-        camera3Base = RtmpCamera3(context, connectCheckerRtp)
+        camera3Base = RtmpCamera4(context, connectCheckerRtp)
 
 
       }

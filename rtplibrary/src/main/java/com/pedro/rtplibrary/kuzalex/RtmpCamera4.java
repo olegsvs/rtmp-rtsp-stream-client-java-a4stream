@@ -6,16 +6,13 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.rtplibrary.kuzalex.Camera3Base;
-
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtmpCamera3 extends Camera3Base {
+public class RtmpCamera4 extends Camera4Base {
 
     public String testtest() {
         return "testtest";
@@ -26,7 +23,7 @@ public class RtmpCamera3 extends Camera3Base {
 
 
 
-    public RtmpCamera3(Context context, ConnectCheckerRtmp connectChecker) {
+    public RtmpCamera4(Context context, ConnectCheckerRtmp connectChecker) {
         super(context);
         srsFlvMuxer = new SrsFlvMuxer(connectChecker);
     }

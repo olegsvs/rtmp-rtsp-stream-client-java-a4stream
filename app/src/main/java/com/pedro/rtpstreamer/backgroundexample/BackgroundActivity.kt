@@ -65,7 +65,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     b_test.setOnClickListener {
       try {
-        RtpService.test()
+//        RtpService.test()
       } catch (e: CameraOpenException) {
         Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
       }
