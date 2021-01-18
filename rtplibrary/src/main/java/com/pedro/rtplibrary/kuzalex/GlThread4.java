@@ -38,20 +38,22 @@ public class GlThread4
     private boolean running = true;
     private boolean initialized = false;
 
-    private SurfaceManager surfaceManagerPhoto = null;
     private SurfaceManager surfaceManager = null;
     private SurfaceManager surfaceManagerEncoder1 = null;
     private SurfaceManager surfaceManagerEncoder2 = null;
 
-    private ManagerRender textureManager = null;
+    private ManagerRender4 textureManager = null;
 
     private final Semaphore semaphore = new Semaphore(0);
-    private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Filter> filterQueue1 = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Filter> filterQueue2 = new LinkedBlockingQueue<>();
     private final Object sync = new Object();
     private int encoderWidth, encoderHeight;
-    private boolean loadAA = false;
+    private int previewWidth, previewHeight;
+//    private boolean loadAA = false;
     private int streamRotation;
-    private boolean muteVideo = false;
+    private boolean muteVideoEncode = false;
+    private boolean muteVideoPreview = false;
     private boolean isStreamHorizontalFlip = false;
     private boolean isStreamVerticalFlip = false;
 
@@ -66,7 +68,7 @@ public class GlThread4
     }
 
     public void init() {
-        if (!initialized) textureManager = new ManagerRender();
+        if (!initialized) textureManager = new ManagerRender4();
         textureManager.setCameraFlip(false, false);
         initialized = true;
     }
@@ -77,22 +79,31 @@ public class GlThread4
     }
 
 
-    public void setEncoderSize(int width, int height) {
-        this.encoderWidth = width;
-        this.encoderHeight = height;
+    public void setSize(int encoderWidth, int encoderHeight, int previewWidth, int previewHeight) {
+        this.encoderWidth = encoderWidth;
+        this.encoderHeight = encoderHeight;
+        this.previewWidth=previewWidth;
+        this.previewHeight=previewHeight;
     }
 
-    public void muteVideo() {
-        muteVideo = true;
+
+
+    public void muteVideoEncode() {
+        muteVideoEncode = true;
     }
 
-    public void unMuteVideo() {
-        muteVideo = false;
+    public void unMuteVideoEncode() {
+        muteVideoEncode = false;
     }
 
-    public boolean isVideoMuted() {
-        return muteVideo;
+    public void muteVideoPreview() {
+        muteVideoPreview = true;
     }
+
+    public void unMuteVideoPreview() {
+        muteVideoPreview = false;
+    }
+
 
     public void setFps(int fps) {
         fpsLimiter.setFPS(fps);
@@ -143,18 +154,24 @@ public class GlThread4
         this.takePhotoCallback = takePhotoCallback;
     }
 
-    public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-        filterQueue.add(new Filter(filterPosition, baseFilterRender));
+    public void setFilter1(int filterPosition, BaseFilterRender baseFilterRender) {
+        filterQueue1.add(new Filter(filterPosition, baseFilterRender));
+    }
+    public void setFilter1(BaseFilterRender baseFilterRender) {
+        setFilter1(0, baseFilterRender);
     }
 
-    public void setFilter(BaseFilterRender baseFilterRender) {
-        setFilter(0, baseFilterRender);
+    public void setFilter2(int filterPosition, BaseFilterRender baseFilterRender) {
+        filterQueue2.add(new Filter(filterPosition, baseFilterRender));
+    }
+    public void setFilter2(BaseFilterRender baseFilterRender) {
+        setFilter2(0, baseFilterRender);
     }
 
-    public void enableAA(boolean AAEnabled) {
-        this.AAEnabled = AAEnabled;
-        loadAA = true;
-    }
+//    public void enableAA(boolean AAEnabled) {
+//        this.AAEnabled = AAEnabled;
+//        loadAA = true;
+//    }
 
     public void setRotation(int rotation) {
         textureManager.setCameraRotation(rotation);
@@ -172,9 +189,9 @@ public class GlThread4
         isStreamVerticalFlip = flip;
     }
 
-    public boolean isAAEnabled() {
-        return textureManager != null && textureManager.isAAEnabled();
-    }
+//    public boolean isAAEnabled() {
+//        return textureManager != null && textureManager.isAAEnabled();
+//    }
 
     public void start() {
         synchronized (sync) {
@@ -206,10 +223,6 @@ public class GlThread4
             surfaceManager.release();
             surfaceManager = null;
         }
-        if (surfaceManagerPhoto != null) {
-            surfaceManagerPhoto.release();
-            surfaceManagerPhoto = null;
-        }
     }
 
     @Override
@@ -219,12 +232,7 @@ public class GlThread4
         surfaceManager.makeCurrent();
         textureManager.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight);
         textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
-        if (surfaceManagerEncoder1 == null && surfaceManagerPhoto == null) {
-            surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
-        }
-        if (surfaceManagerEncoder2 == null && surfaceManagerPhoto == null) {
-            surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
-        }
+
         semaphore.release();
 
         ///
@@ -248,29 +256,32 @@ public class GlThread4
                         kuzalex_startTS = System.currentTimeMillis();
                     }
 
-                    if (!filterQueue.isEmpty()) {
-                        Filter filter = filterQueue.take();
-                        textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-                    } else if (loadAA) {
-                        textureManager.enableAA(AAEnabled);
-                        loadAA = false;
+                    if (!filterQueue1.isEmpty()) {
+                        Filter filter = filterQueue1.take();
+                        textureManager.setFilter1(filter.getPosition(), filter.getBaseFilterRender());
+                    }
+
+                    if (!filterQueue2.isEmpty()) {
+                        Filter filter = filterQueue2.take();
+                        textureManager.setFilter2(filter.getPosition(), filter.getBaseFilterRender());
                     }
 
                     frameAvailable = false;
                     surfaceManager.makeCurrent();
                     textureManager.updateFrame();
                     textureManager.drawOffScreen();
-                    textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, false, false);
+                    textureManager.drawScreen1(previewWidth, previewHeight, false, 0, 0, true, false, false);
+                    textureManager.drawScreen2(encoderWidth, encoderHeight, false, 0, 0, true, false, false);
                     surfaceManager.swapBuffer();
 
                     synchronized (sync) {
                         if (surfaceManagerEncoder1 != null ) {
                             surfaceManagerEncoder1.makeCurrent();
-                            if (muteVideo) {
-                                textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
+                            if (muteVideoPreview) {
+                                textureManager.drawScreen1(0, 0, false, 0, streamRotation, false,
                                         isStreamVerticalFlip, isStreamHorizontalFlip);
                             } else {
-                                textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
+                                textureManager.drawScreen1(previewWidth, previewHeight, false, 0, streamRotation,
                                         false, isStreamVerticalFlip, isStreamHorizontalFlip);
                             }
                             //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
@@ -280,11 +291,11 @@ public class GlThread4
 
                         if (surfaceManagerEncoder2 != null && !fpsLimiter.limitFPS()) {
                             surfaceManagerEncoder2.makeCurrent();
-                            if (muteVideo) {
-                                textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
+                            if (muteVideoEncode) {
+                                textureManager.drawScreen2(0, 0, false, 0, streamRotation, false,
                                         isStreamVerticalFlip, isStreamHorizontalFlip);
                             } else {
-                                textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
+                                textureManager.drawScreen2(encoderWidth, encoderHeight, false, 0, streamRotation,
                                         false, isStreamVerticalFlip, isStreamHorizontalFlip);
                             }
                             //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
@@ -292,16 +303,6 @@ public class GlThread4
 
                         if (surfaceManagerEncoder2 != null) surfaceManagerEncoder2.swapBuffer();
                     }
-
-
-
-//          if (!filterQueue.isEmpty()) {
-//            Filter filter = filterQueue.take();
-//            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-//          } else if (loadAA) {
-//            textureManager.enableAA(AAEnabled);
-//            loadAA = false;
-//          }
                 }
             }
         } catch (InterruptedException ignore) {
