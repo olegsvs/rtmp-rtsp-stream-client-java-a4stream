@@ -24,7 +24,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private HandlerThread handlerThread;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
-  protected long presentTimeUs;
+  protected static long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
@@ -37,6 +37,9 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   public void start() {
+    if (presentTimeUs == 0) {
+      presentTimeUs = System.nanoTime() / 1000;
+    }
     start(true);
     initCodec();
   }
@@ -80,6 +83,13 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   public void stop() {
+    stop(true);
+  }
+
+  public void stop(boolean resetTs) {
+    if (resetTs) {
+      presentTimeUs = 0;
+    }
     running = false;
     stopImp();
     if (handlerThread != null) {
@@ -142,13 +152,13 @@ public abstract class BaseEncoder implements EncoderCallback {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      int size = Math.max(frame.getSize(), 0);
+      int size = Math.min(frame.getSize(), byteBuffer.remaining());
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-    } catch (NullPointerException e) {
+    } catch (NullPointerException | IndexOutOfBoundsException e) {
       Log.i(TAG, "Encoding error", e);
     }
   }
