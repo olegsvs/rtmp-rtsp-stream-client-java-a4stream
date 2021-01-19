@@ -494,7 +494,7 @@ public class RtmpConnection implements RtmpPublisher {
       rtmpPacket.writeTo(outputStream, rtmpSessionInfo.getTxChunkSize(), chunkStreamInfo);
       if (isEnableLogs) {
         Log.d(TAG,
-                "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
+                "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength()+ ", ts: " + rtmpPacket.getHeader().getAbsoluteTimestamp());
       }
       if (rtmpPacket instanceof Command) {
         rtmpSessionInfo.addInvokedCommand(((Command) rtmpPacket).getTransactionId(),

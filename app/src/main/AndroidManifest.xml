@@ -103,6 +103,7 @@
         android:label="@string/display_rtmp"
         android:screenOrientation="portrait"
 
+
         />
     <activity
         android:name=".backgroundexample.BackgroundActivity"
