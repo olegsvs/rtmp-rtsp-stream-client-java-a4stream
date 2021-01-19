@@ -221,9 +221,36 @@ public class OffScreenGlThread
       surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
     }
     semaphore.release();
+
+    ///
+    ///
+    long kuzalex_startTS = System.currentTimeMillis();
+    long kuzalex_nframes = 0;
+
+
+
     try {
       while (running) {
         if (frameAvailable || forceRender) {
+
+          kuzalex_nframes++;
+          if (System.currentTimeMillis() - kuzalex_startTS > 2000) {
+            // print
+            double a = 1.0 * kuzalex_nframes / (System.currentTimeMillis() - kuzalex_startTS) * 1000;
+            Log.e("kuzalex", "FPS="+a);
+
+            kuzalex_nframes=0;
+            kuzalex_startTS = System.currentTimeMillis();
+          }
+
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.take();
+            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+          } else if (loadAA) {
+            textureManager.enableAA(AAEnabled);
+            loadAA = false;
+          }
+
           frameAvailable = false;
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
@@ -233,6 +260,8 @@ public class OffScreenGlThread
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
+//              if (encoderWidth>2000)
+//                Log.i("kuzalex", "draw="+kuzalex_nframes);
               surfaceManagerEncoder.makeCurrent();
               if (muteVideo) {
                 textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
@@ -254,13 +283,13 @@ public class OffScreenGlThread
             if (surfaceManagerEncoder != null) surfaceManagerEncoder.swapBuffer();
             else if (surfaceManagerPhoto != null) surfaceManagerPhoto.swapBuffer();
           }
-          if (!filterQueue.isEmpty()) {
-            Filter filter = filterQueue.take();
-            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            textureManager.enableAA(AAEnabled);
-            loadAA = false;
-          }
+//          if (!filterQueue.isEmpty()) {
+//            Filter filter = filterQueue.take();
+//            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+//          } else if (loadAA) {
+//            textureManager.enableAA(AAEnabled);
+//            loadAA = false;
+//          }
         }
       }
     } catch (InterruptedException ignore) {

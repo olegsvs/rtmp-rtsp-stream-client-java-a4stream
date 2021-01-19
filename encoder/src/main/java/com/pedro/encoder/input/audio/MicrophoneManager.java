@@ -32,7 +32,7 @@ public class MicrophoneManager {
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   protected boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
-  HandlerThread handlerThread;
+  protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
@@ -180,9 +180,7 @@ public class MicrophoneManager {
   private Frame read() {
     pcmBuffer.rewind();
     int size = audioRecord.read(pcmBuffer, pcmBuffer.remaining());
-    if (size < 0) {
-      return null;
-    }
+    if (size < 0) return null;
     return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer.array()),
         muted ? 0 : pcmBuffer.arrayOffset(), size);
   }

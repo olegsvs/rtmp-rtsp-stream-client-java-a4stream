@@ -157,7 +157,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public void start(boolean resetTs) {
     spsPpsSetted = false;
     if (resetTs) {
-      presentTimeUs = System.nanoTime() / 1000;
       fpsLimiter.setFPS(fps);
     }
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
@@ -175,7 +174,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   public void reset() {
-    stop();
+    stop(false);
     prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
         avcProfile, avcProfileLevel);
     restart();
@@ -305,7 +304,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       for (int color : codecCapabilities.colorFormats) {
         Log.i(TAG, "Color supported: " + color);
         if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-          if (color == FormatVideoEncoder.SURFACE.getFormatCodec()) return mci;
+          if (color == FormatVideoEncoder.SURFACE.getFormatCodec())
+            return mci;
         } else {
           //check if encoder support any yuv420 color
           if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()

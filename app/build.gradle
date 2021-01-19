@@ -5,19 +5,31 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-  compileSdkVersion 30
+  signingConfigs {
+      rel {
+          storeFile file('/Users/kuzalex/projects/family_notes/android/app/keys/key.jks')
+        storePassword '123456'
+        keyPassword '123456'
+        keyAlias 'key'
+      }
+  }
+    compileSdkVersion 30
 
   defaultConfig {
     applicationId "com.pedro.rtpstreamer"
     minSdkVersion 16
     targetSdkVersion 30
-    versionCode 195
-    versionName "1.9.5"
+    versionCode 196
+    versionName "1.9.6"
   }
   buildTypes {
     release {
       minifyEnabled false
+      signingConfig signingConfigs.rel
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+    debug {
+      signingConfig signingConfigs.rel
     }
   }
 }

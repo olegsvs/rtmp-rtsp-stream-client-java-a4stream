@@ -9,14 +9,29 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.util.Size
+import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.pedro.rtplibrary.base.Camera2Base
-import com.pedro.rtplibrary.rtmp.RtmpCamera2
-import com.pedro.rtplibrary.rtsp.RtspCamera2
+import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.rtplibrary.kuzalex.Camera3Base
+import com.pedro.rtplibrary.kuzalex.Camera4Base
+import com.pedro.rtplibrary.kuzalex.RtmpCamera3
+import com.pedro.rtplibrary.kuzalex.RtmpCamera4
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
+import java.lang.Long.signum
+import java.util.*
 
+
+internal class CompareSizesByArea : Comparator<Size> {
+
+  // We cast here to ensure the multiplications won't overflow
+  @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+  override fun compare(lhs: Size, rhs: Size) =
+          signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
+
+}
 
 /**
  * Basic RTMP/RTSP service streaming implementation with camera2
@@ -57,7 +72,7 @@ class RtpService : Service() {
     Log.e(TAG, "RTP service started")
     endpoint = intent?.extras?.getString("endpoint")
     if (endpoint != null) {
-      prepareStreamRtp()
+//      prepareStreamRtp()
       startStreamRtp(endpoint!!)
     }
     return START_STICKY
@@ -68,65 +83,160 @@ class RtpService : Service() {
     private val channelId = "rtpStreamChannel"
     private val notifyId = 123456
     private var notificationManager: NotificationManager? = null
-    public var camera2Base: Camera2Base? = null
-    private var openGlView: OpenGlView? = null
+    private var camera3Base: Camera4Base? = null
+//    private var openGlView: OpenGlView? = null
     private var contextApp: Context? = null
 
-    fun setView(openGlView: OpenGlView) {
-      this.openGlView = openGlView
-      camera2Base?.replaceView(openGlView)
-    }
 
-    fun setView(context: Context) {
-      contextApp = context
-      this.openGlView = null
-      camera2Base?.replaceView(context)
-    }
+    private var lastPreviewWidth : Int? = null
+    private var lastPreviewHeight : Int? = null
+    private var lastRotation : Int? = null
+
+
+    val encoderWidth = 640
+    val encoderHeight = 480
+
+//    val encoderWidth = 1280
+//    val encoderHeight = 720
+//    val encoderWidth = 1280
+//    val encoderHeight = 960
+//    val encoderWidth = 176
+//    val encoderHeight = 144
+//    val encoderWidth = 720
+//    val encoderHeight = 720
+//    val encoderWidth = 1024
+//    val encoderHeight = 768
+
 
     fun switchCamera() {
-      camera2Base?.switchCamera()
+      camera3Base?.switchCamera()
+
+
+      camera3Base?.let { cam ->
+
+        if (cam.isOnPreview && lastPreviewWidth!=null && lastPreviewHeight!=null && lastRotation!=null) {
+          cam.setupPreviewSurface(cam.surface,  lastRotation!!)
+        }
+      }
     }
 
-    private var test = false
-    fun test() {
-      if (test){
-        test=!test
-        camera2Base?.cameraManager?.testStartRepeatingEncoder1()
+    // Finds the closest Size to (|width|x|height|) in |sizes|, and returns it or null.
+    // Ignores |width| or |height| if either is zero (== don't care).
+    private fun findClosestSizeInArray(sizes: MutableList<Size>, width: Int, height: Int): Size? {
+      if (sizes == null) return null
+      var closestSize: Size? = null
+      var minDiff = Int.MAX_VALUE
+      for (size in sizes) {
+        val diff = ((if (width > 0) Math.abs(size.width - width) else 0)
+                + if (height > 0) Math.abs(size.height - height) else 0)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestSize = size
+        }
+      }
+      if (minDiff == Int.MAX_VALUE) {
+        Log.e(TAG, "Couldn't find resolution close to ($width x $height)")
+        return null
+      }
+      return closestSize
+    }
 
-      } else {
-        test=!test
-        camera2Base?.cameraManager?.testStopRepeatingEncoder1()
 
 
+
+
+    fun addPreview(surface: Surface, width: Int, height: Int){
+
+
+      val rotation = CameraHelper.getCameraOrientation(contextApp)
+
+
+
+      val largest = Collections.max(
+              camera3Base?.resolutionsFront,
+              CompareSizesByArea())
+      Log.i(TAG, "$largest")
+
+
+      camera3Base?.resolutionsFront?.let {
+        val sz =  findClosestSizeInArray(it, Math.max(encoderWidth, encoderHeight), Math.min(encoderWidth, encoderHeight))
+        Log.i(TAG, "$sz")
       }
 
 
+      camera3Base?.let { cam ->
+
+        if (cam.isOnPreview) {
+          cam.setupPreviewSurface(surface, rotation)
+          lastPreviewWidth = width
+          lastPreviewHeight = height
+          lastRotation = rotation
+
+        } else {
+
+          camera3Base!!.setupAndStartPreview(
+                  CameraHelper.Facing.BACK,
+                  width, height,
+                  encoderWidth, encoderHeight, rotation,
+          )
+          cam.setupPreviewSurface(surface, rotation)
+          lastPreviewWidth = width
+          lastPreviewHeight = height
+          lastRotation = rotation
+        }
+      }
+    }
+
+    fun removePreview(){
+      camera3Base?.let {
+        if (it.isOnPreview) {
+          it.removePreviewSurface()
+        } else {
+        }
+      }
+
+    }
+
+    private fun startStreamRtp(endpoint: String) {
+
+      if (camera3Base!!.isStreaming)
+        return
 
 
+
+
+      if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200 * 1024, 2, camera3Base!!.encoderRotation, -1, -1) )
+        return
+
+      if (!camera3Base!!.prepareAudio())
+        return
+
+
+      camera3Base!!.startStream(endpoint)
     }
 
 
 
-    fun startPreview() {
-      camera2Base?.startPreview()
-    }
+
 
     fun init(context: Context) {
       contextApp = context
-      if (camera2Base == null) camera2Base = RtmpCamera2(context, true, connectCheckerRtp)
-    }
+      if (camera3Base == null) {
+        camera3Base = RtmpCamera4(context, connectCheckerRtp)
 
-    fun stopStream() {
-      if (camera2Base != null) {
-        if (camera2Base!!.isStreaming) camera2Base!!.stopStream()
+
       }
     }
 
-    fun stopPreview() {
-      if (camera2Base != null) {
-        if (camera2Base!!.isOnPreview) camera2Base!!.stopPreview()
+    fun stop() {
+      if (camera3Base != null) {
+        camera3Base!!.stop()
       }
     }
+
+
+
+
 
 
     private val connectCheckerRtp = object : ConnectCheckerRtp {
@@ -171,34 +281,9 @@ class RtpService : Service() {
   override fun onDestroy() {
     super.onDestroy()
     Log.e(TAG, "RTP service destroy")
-    stopStream()
+    camera3Base?.stopStream()
   }
 
-  private fun prepareStreamRtp() {
-    stopStream()
-    stopPreview()
-    if (endpoint!!.startsWith("rtmp")) {
-      camera2Base = if (openGlView == null) {
-        RtmpCamera2(baseContext, true, connectCheckerRtp)
-      } else {
-        RtmpCamera2(openGlView, connectCheckerRtp)
-      }
-    } else {
-      camera2Base = if (openGlView == null) {
-        RtspCamera2(baseContext, true, connectCheckerRtp)
-      } else {
-        RtspCamera2(openGlView, connectCheckerRtp)
-      }
-    }
-  }
-
-  private fun startStreamRtp(endpoint: String) {
-    if (!camera2Base!!.isStreaming) {
-      if (camera2Base!!.prepareVideo() && camera2Base!!.prepareAudio()) {
-        camera2Base!!.startStream(endpoint)
-      }
-    } else {
-      showNotification("You are already streaming :(")
-    }
-  }
 }
+
+
