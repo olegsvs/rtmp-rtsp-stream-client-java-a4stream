@@ -219,6 +219,9 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
     public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
                                 int rotation, int avcProfile, int avcProfileLevel) {
 
+        if (glInterface!=null)
+            glInterface.setFps(fps);
+
         boolean result =
                 videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
                         FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);

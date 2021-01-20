@@ -11,14 +11,12 @@ import android.os.IBinder
 import android.util.Log
 import android.util.Size
 import android.view.Surface
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.rtplibrary.kuzalex.Camera3Base
 import com.pedro.rtplibrary.kuzalex.Camera4Base
-import com.pedro.rtplibrary.kuzalex.RtmpCamera3
 import com.pedro.rtplibrary.kuzalex.RtmpCamera4
-import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 import java.lang.Long.signum
 import java.util.*
@@ -115,7 +113,7 @@ class RtpService : Service() {
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview && lastPreviewWidth!=null && lastPreviewHeight!=null && lastRotation!=null) {
-          cam.setupPreviewSurface(cam.surface,  lastRotation!!)
+          cam.setupPreviewSurface(cam.surface, lastRotation!!)
         }
       }
     }
@@ -208,6 +206,7 @@ class RtpService : Service() {
       if (!camera3Base!!.prepareVideo(encoderWidth, encoderHeight, 30, 1200 * 1024, 2, camera3Base!!.encoderRotation, -1, -1) )
         return
 
+
       if (!camera3Base!!.prepareAudio())
         return
 
@@ -222,9 +221,10 @@ class RtpService : Service() {
     fun init(context: Context) {
       contextApp = context
       if (camera3Base == null) {
-        camera3Base = RtmpCamera4(context, connectCheckerRtp)
+        var rtmpCamera4: RtmpCamera4 =  RtmpCamera4(context, connectCheckerRtp)
+        rtmpCamera4.setReTries(3)
 
-
+        camera3Base = rtmpCamera4
       }
     }
 
@@ -251,7 +251,14 @@ class RtpService : Service() {
 
       override fun onConnectionFailedRtp(reason: String) {
         showNotification("Stream connection failed")
-        Log.e(TAG, "RTP service destroy")
+        if (camera3Base!!.reTry(3000, reason)) {
+          showNotification("Retry")
+        } else {
+          showNotification("Connection failed. $reason")
+//          rtmpCamera1.stopStream()
+//          button.setText(R.string.start_button)
+        }
+//        Log.e(TAG, "RTP service destroy")
       }
 
       override fun onDisconnectRtp() {
