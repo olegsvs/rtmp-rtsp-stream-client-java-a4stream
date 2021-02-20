@@ -1,9 +1,6 @@
 package com.pedro.rtpstreamer.backgroundexample
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -113,7 +110,7 @@ class RtpService : Service() {
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview && lastPreviewWidth!=null && lastPreviewHeight!=null && lastRotation!=null) {
-          cam.setupPreviewSurface(cam.surface, lastRotation!!)
+          cam.setupPreviewSurface(cam.surface, lastRotation!!, lastPreviewWidth!!, lastPreviewHeight!!)
         }
       }
     }
@@ -165,7 +162,7 @@ class RtpService : Service() {
       camera3Base?.let { cam ->
 
         if (cam.isOnPreview) {
-          cam.setupPreviewSurface(surface, rotation)
+          cam.setupPreviewSurface(surface, rotation, width, height)
           lastPreviewWidth = width
           lastPreviewHeight = height
           lastRotation = rotation
@@ -177,7 +174,7 @@ class RtpService : Service() {
                   width, height,
                   encoderWidth, encoderHeight, rotation,
           )
-          cam.setupPreviewSurface(surface, rotation)
+          cam.setupPreviewSurface(surface, rotation, width, height)
           lastPreviewWidth = width
           lastPreviewHeight = height
           lastRotation = rotation
@@ -276,10 +273,14 @@ class RtpService : Service() {
 
     private fun showNotification(text: String) {
       contextApp?.let {
+        val pendingIntent = PendingIntent.getActivity(it, 0, Intent(it, BackgroundActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+
         val notification = NotificationCompat.Builder(it, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("RTP Stream")
-            .setContentText(text).build()
+            .setContentText(text)
+            .setContentIntent(pendingIntent)
+            .build()
         notificationManager?.notify(notifyId, notification)
       }
     }

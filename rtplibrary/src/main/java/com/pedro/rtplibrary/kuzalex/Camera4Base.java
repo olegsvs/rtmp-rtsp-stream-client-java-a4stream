@@ -59,7 +59,7 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
     private boolean onPreview = false;
     private Boolean surfaceAttached = false;
 
-    private int previewWidth, previewHeight;
+    //private int previewWidth, previewHeight;
     private int encoderWidth,  encoderHeight;
     private int encoderRotation = -1;
 
@@ -317,8 +317,8 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
             int encoderWidth, int encoderHeight, int rotation
     ) {
         if (!streaming && !onPreview) {
-            this.previewWidth = previewWidth;
-            this.previewHeight = previewHeight;
+//            this.previewWidth = previewWidth;
+//            this.previewHeight = previewHeight;
             this.encoderRotation = rotation;
 
 
@@ -356,7 +356,8 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
     //FIXME: remove old filter???
     public void setupPreviewSurface(
             Surface surface,
-            int rotation
+            int rotation,
+            int previewWidth, int previewHeight
     )
     {
         if (glInterface!=null ) {
@@ -445,7 +446,7 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
             //
             //
 
-            double a2 = 1.0 * Math.min(this.previewWidth, this.previewHeight) /  Math.max(this.previewWidth, this.previewHeight) ;
+            double a2 = 1.0 * Math.min(previewWidth, previewHeight) /  Math.max(previewWidth, previewHeight) ;
 
             double scale = realEncoderAspect  ;
             double translate = -1 * (1-a2);
@@ -626,7 +627,8 @@ public abstract class Camera4Base implements GetAacData, GetVideoData, GetMicrop
         glInterface.removeMediaCodecSurface2();
 
         onPreview = streaming = surfaceAttached = false;
-        previewWidth = previewHeight = encoderWidth = encoderHeight = 0;
+//        previewWidth = previewHeight =
+        encoderWidth = encoderHeight = 0;
         surface = null;
 
     }
